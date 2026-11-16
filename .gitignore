@@ -362,3 +362,9 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /PortfolioManager/appsettings.PROD.json
+
+# Local development database credentials
+**/.local/
+
+# Markdown documentation
+*.md

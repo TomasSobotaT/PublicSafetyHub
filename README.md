@@ -2,6 +2,18 @@
 
 Základní kostra samostatného řešení pro .NET 10. Datová vrstva používá EF Core, ASP.NET Core Identity a PostgreSQL.
 
+## Spuštění po stažení z GitHubu
+
+Předpoklady: .NET 10 SDK a aktuální Docker Desktop s dokončeným úvodním nastavením a podporou Linux containers (na Windows WSL 2). Ve Visual Studiu zvol jako startup projekt PublicSafetyHub.Host, konfiguraci Debug a profil https; stiskni F5. Nebo v kořeni řešení spusť:
+
+```powershell
+dotnet run --project PublicSafetyHub.Host
+```
+
+Debug build na Windows spustí Docker Desktop přes `docker desktop start`, poté databázi přes Compose. API při prvním startu vytvoří lokální schéma a OAuth klienty. Výchozí profil je HTTPS; Swagger je na https://localhost:7102/swagger. Ruční vytvoření databáze, kontejneru ani secrets není potřeba. Při prvním použití HTTPS může být nutné jednorázově důvěřovat vývojovému certifikátu přes `dotnet dev-certs https --trust`.
+
+Na Linuxu musí před spuštěním běžet Docker Engine s Compose pluginem. Stažení image při prvním buildu vyžaduje internet. Pokud nenaběhne Docker/WSL backend, nejprve dokonči jeho nastavení v Docker Desktopu.
+
 | Projekt | Účel |
 | --- | --- |
 | PublicSafetyHub.Host | ASP.NET Core API, kontrolery a spuštění aplikace. |
@@ -30,7 +42,23 @@ Sestavení: `dotnet build PublicSafetyHub.slnx`
 
 `UserEntity` je ve vrstvě Core v namespace `PublicSafetyHub.Core.Entities`. Core referencují Data, Application a Host; Base ani Models jej nereferencují. Základní entity a jejich rozhraní jsou v Base/Entities/Base; Core z nich vychází přes referenci na Base. Data referencuje Core i Base kvůli konkrétním entitám a společným repozitářům. Registraci kontextu s PostgreSQL a OpenIddict zajišťuje metoda `AddDatabase(configuration)` v Host/BuilderExtensions/DatabaseServiceCollectionExtension.cs. Connection string `DefaultConnection` se načítá uvnitř této metody.
 
-Schéma databáze musí obsahovat tabulky Identity i OpenIddict. Migrace zatím nebyly vytvořené ani aplikované a Host je automaticky nespouští. Před spuštěním je potřeba připravit databázi a nastavit připojení přes user secrets nebo `ConnectionStrings__DefaultConnection`. Při startu se do připravené databáze zaregistrují povolení OAuth klienti z `AuthOptions:ClientIds`.
+Debug build Hostu automaticky spustí PostgreSQL 18 přes Docker Compose a počká na úspěšný healthcheck. Spuštění je MSBuild target v Host/Directory.Build.targets; v C# není žádný proces pro spouštění Dockeru. Připojení je přímo v appsettings.Development.json. Na Windows se Docker Desktop automaticky spouští před Compose; musí mít funkční Linux/WSL backend. Při prvním startu `EnsureCreatedAsync()` vytvoří schéma Identity a OpenIddict. Při dalších startech zůstávají data v pojmenovaném Docker volume `publicsafetyhub_postgres-data`. Do databáze se při startu zaregistrují chybějící OAuth klienti z `AuthOptions:ClientIds`.
+
+Spusť API běžně ve Visual Studiu s profilem `https` nebo příkazem `dotnet run --project PublicSafetyHub.Host --launch-profile https`. Databáze je přístupná také z databázového klienta:
+
+| Nastavení | Hodnota |
+| --- | --- |
+| Host | `localhost` |
+| Port | `5433` |
+| Databáze | `PublicSafetyHub` |
+| Uživatel | `publicsafetyhub` |
+| Heslo | `publicsafetyhub_dev` (pouze lokální vývoj). |
+
+Jméno databáze, uživatel, vývojové heslo a port jsou přímo v compose.yaml; appsettings.Development.json obsahuje odpovídající connection string. Jde pouze o lokální vývojové údaje; produkční připojení nadále patří do secrets. Zastavení API kontejner nevypíná, takže se k databázi můžeš dál připojovat; zastavíš ho přes `docker stop publicsafetyhub-db`. Další Debug build jej znovu spustí. Visual Studio má pro tento profil vypnuté přeskočení buildu při nezměněném kódu.
+
+Start kontejneru řídí Debug MSBuild target; vypneš jej přes `-p:StartDevelopmentDatabase=false`. Release build Docker nespouští. `dotnet run --no-build` build přeskočí a předpokládá již běžící databázi. Sekce `DevelopmentDatabase:Enabled` zapíná pouze vytvoření lokálního schématu při startu API v Development. Pro vlastní databázi vypni automatický start kontejneru i tvorbu schématu a nastav connection string přes secrets nebo prostředí. Connection string se v C# nepřepisuje.
+
+Migrace zatím nejsou vytvořené. `EnsureCreatedAsync()` pouze inicializuje prázdnou vývojovou databázi, existující schéma při změně modelu neaktualizuje. Správu změn schématu bude potřeba řešit migracemi před nasazením. Pro vlastní připravenou databázi nastav připojení například takto:
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=PublicSafetyHub;Username=YOUR_USER;Password=YOUR_PASSWORD" --project PublicSafetyHub.Host

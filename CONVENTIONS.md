@@ -62,7 +62,7 @@ Tento dokument zachycuje zadání z `../StatniSlozky.txt`, konvence z `../code.t
 
 - Lokalizaci požadavků zatím nepoužívej: neregistruj `RequestLocalizationOptions` ani `UseRequestLocalization()`.
 
-- Validátory požadavků patří do Application/Validators podle domény a používají FluentValidation. Request DTO nemají validační DataAnnotations ani C# `required`; povinné hodnoty ověřují validátory. Služby injektují `IValidator<T>` a volají `ValidateAsync` bez tokenu před prací s daty. První chybu převedou přes `ResultHelper.Validation`. Validátory registruj skenováním assembly v Host/BuilderExtensions/DependencyInjectionExtension. Nevracej vlastní `InvalidModelStateResponseFactory`; implicitní Required pro non-nullable reference v MVC je vypnuté.
+- Validátory požadavků patří do Application/Validators podle domény a používají FluentValidation. Request DTO nemají validační DataAnnotations ani C# `required`; povinné hodnoty ověřují validátory. Služby injektují `IValidator<T>` a volají `ValidateAsync` bez tokenu před prací s daty. První chybu převedou přes `ResultHelper.Validation`. Validátory registruj skenováním assembly v Host/BuilderExtensions/DependencyInjectionExtension. Nevracej vlastní `InvalidModelStateResponseFactory`; při Nullable=disable nenastavuj zbytečně SuppressImplicitRequiredAttributeForNonNullableReferenceTypes.
 
 - Všechny projekty používají `<Nullable>disable</Nullable>`. Nepiš nullable anotace referenčních typů (např. `string?`) ani null-forgiving operátor. Nullable hodnotové typy jako `int?` a `DateTime?` zachovej podle významu dat; kontroly null za běhu a FluentValidation zůstávají.
 
@@ -72,4 +72,8 @@ Tento dokument zachycuje zadání z `../StatniSlozky.txt`, konvence z `../code.t
 
 - Repozitáře obsahují jen databázové operace a nezbytnou datovou logiku. Nenormalizují ani neořezávají vstupy a neinjektují ILookupNormalizer. Normalizaci e-mailu provádí AuthService přes UserManager.NormalizeEmail; UserRepository.GetUserByEmailAsync jen dotazuje NormalizedEmail. Registrace při kontrole obsazeného e-mailu výslovně obchází query filtr, aby zůstal obsazený i po soft delete.
 
+- Vývojový PostgreSQL kontejner startuje MSBuild target v Host/Directory.Build.targets před Debug buildem přes docker compose up --detach --wait. Design-time a Release build ho nespouští. Přepínač StartDevelopmentDatabase=false umožní build bez Dockeru; běh --no-build předpokládá běžící DB. Na Windows target nejprve volá docker desktop start --timeout 120; Docker Desktop musí být nainstalovaný a mít funkční Linux/WSL backend. Na ostatních systémech se předpokládá běžící Docker Engine. Nepoužívej DevelopmentDatabaseExtension ani Process.Start v API. Lokální údaje a port jsou přímo v Host/compose.yaml a odpovídající connection string v appsettings.Development.json; produkční secrets zůstávají mimo kód. Vývojové schéma se inicializuje EnsureCreatedAsync pouze v Development při DevelopmentDatabase:Enabled=true; existující schéma se tím neaktualizuje.
+
 - Vlastní metody konkrétních repozitářů pojmenovávej celým názvem včetně entity a kritéria, např. `GetUserByEmailAsync`, nikoli `GetByEmailAsync`. Názvy sjednoť v rozhraní, implementaci a voláních. Generické metody společného repozitáře zůstávají obecné (`GetAsync`, `GetAllAsync` apod.).
+
+- Výchozí launch profil Hostu je https s prostředím Development a Swaggerem. Start po klonu má vyžadovat pouze připravené .NET 10 SDK a Docker Desktop/Engine; vývojová DB, připojení a počáteční schéma nevyžadují ruční konfiguraci.

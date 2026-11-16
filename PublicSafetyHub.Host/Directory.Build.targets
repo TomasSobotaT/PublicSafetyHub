@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <StartDevelopmentDatabase Condition="'$(StartDevelopmentDatabase)' == ''">true</StartDevelopmentDatabase>
+    <DisableFastUpToDateCheck Condition="'$(Configuration)' == 'Debug' and '$(StartDevelopmentDatabase)' == 'true'">true</DisableFastUpToDateCheck>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="compose.yaml" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
+    <Content Remove=".local\**" />
+    <None Remove=".local\**" />
+  </ItemGroup>
+  <Target Name="StartDevelopmentDatabaseContainer"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(Configuration)' == 'Debug' and '$(DesignTimeBuild)' != 'true' and '$(StartDevelopmentDatabase)' == 'true'">
+    <Exec Command="docker desktop start --timeout 120"
+          Condition="'$(OS)' == 'Windows_NT'"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Exec Command="docker compose --file &quot;$(MSBuildProjectDirectory)/compose.yaml&quot; up --detach --wait --wait-timeout 120 database"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+</Project>
