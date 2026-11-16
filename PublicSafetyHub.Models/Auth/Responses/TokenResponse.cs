@@ -1,0 +1,21 @@
+using System.Text.Json.Serialization;
+
+namespace PublicSafetyHub.Models.Auth.Responses;
+
+public class TokenResponse
+{
+    [JsonPropertyName("access_token")]
+    public required string AccessToken { get; set; }
+
+    [JsonPropertyName("token_type")]
+    public required string TokenType { get; set; }
+
+    [JsonPropertyName("expires_in")]
+    public long ExpiresIn { get; set; }
+
+    [JsonPropertyName("refresh_token")]
+    public string RefreshToken { get; set; }
+
+    [JsonPropertyName("scope")]
+    public string Scope { get; set; }
+}

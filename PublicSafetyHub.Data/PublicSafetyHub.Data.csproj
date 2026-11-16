@@ -2,6 +2,15 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.9.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />
+    <ProjectReference Include="..\PublicSafetyHub.Base\PublicSafetyHub.Base.csproj" />
+  </ItemGroup>
 </Project>

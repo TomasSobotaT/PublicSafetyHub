@@ -2,6 +2,18 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
+    <UserSecretsId>PublicSafetyHub.Host-local</UserSecretsId>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenIddict.AspNetCore" Version="7.9.0" />
+    <PackageReference Include="Asp.Versioning.Mvc" Version="10.2.1" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.2.1" />
+    <PackageReference Include="Asp.Versioning.OpenApi" Version="10.2.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="11.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <ProjectReference Include="..\PublicSafetyHub.Application\PublicSafetyHub.Application.csproj" />
+    <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />
+    <ProjectReference Include="..\PublicSafetyHub.Data\PublicSafetyHub.Data.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="PublicSafetyHub.AI/PublicSafetyHub.AI.csproj" />
   <Project Path="PublicSafetyHub.Base/PublicSafetyHub.Base.csproj" />
+  <Project Path="PublicSafetyHub.Core/PublicSafetyHub.Core.csproj" />
   <Project Path="PublicSafetyHub.Elasticsearch/PublicSafetyHub.Elasticsearch.csproj" />
   <Project Path="PublicSafetyHub.Integration/PublicSafetyHub.Integration.csproj" />
   <Project Path="PublicSafetyHub.Models/PublicSafetyHub.Models.csproj" />
