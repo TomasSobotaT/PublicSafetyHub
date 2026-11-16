@@ -1,0 +1,14 @@
+<Solution>
+  <Project Path="PublicSafetyHub.AI/PublicSafetyHub.AI.csproj" />
+  <Project Path="PublicSafetyHub.Base/PublicSafetyHub.Base.csproj" />
+  <Project Path="PublicSafetyHub.Elasticsearch/PublicSafetyHub.Elasticsearch.csproj" />
+  <Project Path="PublicSafetyHub.Integration/PublicSafetyHub.Integration.csproj" />
+  <Project Path="PublicSafetyHub.Models/PublicSafetyHub.Models.csproj" />
+  <Project Path="PublicSafetyHub.NSwagClient/PublicSafetyHub.NSwagClient.csproj" />
+  <Project Path="PublicSafetyHub.Tests/PublicSafetyHub.Tests.csproj" />
+  <Project Path="PublicSafetyHub.Host/PublicSafetyHub.Host.csproj" />
+  <Project Path="PublicSafetyHub.Data/PublicSafetyHub.Data.csproj" />
+  <Project Path="PublicSafetyHub.Application/PublicSafetyHub.Application.csproj" />
+  <Project Path="PublicSafetyHub.Mobile/PublicSafetyHub.Mobile.csproj" />
+  <Project Path="PublicSafetyHub.Blazor/PublicSafetyHub.Blazor.csproj" />
+</Solution>
