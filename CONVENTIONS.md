@@ -27,3 +27,5 @@
 - Endpointy a služby článků podle aktuálních podpisů nepřijímají CancellationToken. Obecné read metody repository zachovávají volitelný token, ale služby používají overload bez jeho předání. Chyby vstupu vrací ApplicationResult přes ResultHelper.Validation, bez try/catch ve službě.
 
 - Časové údaje CreatedAt a UpdatedAt nastavují pouze repozitáře (ExtendedBaseRepository pro běžné entity, CreateUserAsync v UserRepository pro registraci přes Identity). DbContext nepřepisuje SaveChanges kvůli časům a neprochází ChangeTracker. Automatické interní změny Identity mimo repository čas UpdatedAt nemění. Samotné ukládání změn zůstává v UnitOfWork a interních mechanismech Identity; repository nemá obecný Commit ani SaveChanges.
+
+- DependencyInjectionExtension rozděluje registrace do RegisterServices, RegisterRepositories, RegisterValidators, RegisterMappings a RegisterHostedServices. Vlastní scoped registrace používej přes TryAddScoped včetně registrace rozhraní DbContextu. Registrace knihoven a hosted služeb používají jejich odpovídající registrační API a zachovávají původní lifetime.

@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using PublicSafetyHub.Application.Services;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.UserContext;
@@ -15,18 +16,43 @@ public static class DependencyInjectionExtension
 {
     public static IServiceCollection AddDependencyInjectionRegistration(this IServiceCollection services)
     {
-        services.AddHttpContextAccessor();
-        services.AddValidatorsFromAssemblyContaining<RegisterUserRequestValidator>();
-        services.AddAutoMapper(typeof(EntityMappingProfile));
-        services.AddScoped<IHttpUserContext, HttpUserContext>();
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IArticleService, ArticleService>();
-        services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IArticleRepository, ArticleRepository>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddHostedService<AuthClientInitializer>();
+        services.RegisterServices();
+        services.RegisterRepositories();
+        services.RegisterValidators();
+        services.RegisterMappings();
+        services.RegisterHostedServices();
 
         return services;
+    }
+
+    private static void RegisterServices(this IServiceCollection services)
+    {
+        services.AddHttpContextAccessor();
+        services.TryAddScoped<IHttpUserContext, HttpUserContext>();
+        services.TryAddScoped<IAuthService, AuthService>();
+        services.TryAddScoped<IArticleService, ArticleService>();
+        services.TryAddScoped<ITokenService, TokenService>();
+    }
+
+    private static void RegisterRepositories(this IServiceCollection services)
+    {
+        services.TryAddScoped<IUserRepository, UserRepository>();
+        services.TryAddScoped<IArticleRepository, ArticleRepository>();
+        services.TryAddScoped<IUnitOfWork, UnitOfWork>();
+    }
+
+    private static void RegisterValidators(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssemblyContaining<RegisterUserRequestValidator>();
+    }
+
+    private static void RegisterMappings(this IServiceCollection services)
+    {
+        services.AddAutoMapper(typeof(EntityMappingProfile));
+    }
+
+    private static void RegisterHostedServices(this IServiceCollection services)
+    {
+        services.AddHostedService<AuthClientInitializer>();
     }
 }

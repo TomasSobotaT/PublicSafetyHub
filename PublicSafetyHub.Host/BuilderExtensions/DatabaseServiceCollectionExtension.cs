@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using PublicSafetyHub.Data.Context;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
@@ -17,7 +18,7 @@ public static class DatabaseServiceCollectionExtension
             options.UseOpenIddict();
         });
 
-        services.AddScoped<IPublicSafetyHubDbContext>(provider => provider.GetRequiredService<PublicSafetyHubDbContext>());
+        services.TryAddScoped<IPublicSafetyHubDbContext>(provider => provider.GetRequiredService<PublicSafetyHubDbContext>());
 
         services.AddOpenIddict().AddCore(options =>
         {
