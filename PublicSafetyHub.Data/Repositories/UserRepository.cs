@@ -9,8 +9,13 @@ namespace PublicSafetyHub.Data.Repositories;
 public class UserRepository(PublicSafetyHubDbContext dbContext)
     : ExtendedBaseRepository<UserEntity, int>(dbContext), IUserRepository
 {
-    public async Task<UserEntity> GetUserByEmailAsync(string normalizedEmail)
+    public async Task<UserEntity> GetUserByEmailAsync(string email)
     {
-        return await GetQueryable().FirstOrDefaultAsync(user => user.NormalizedEmail == normalizedEmail);
+        return await GetQueryable().FirstOrDefaultAsync(user => user.NormalizedEmail == email);
+    }
+
+    public async Task<bool> UserExistsByEmailAsync(string email)
+    {
+        return await GetQueryable().IgnoreQueryFilters().AnyAsync(user => user.NormalizedEmail == email);
     }
 }

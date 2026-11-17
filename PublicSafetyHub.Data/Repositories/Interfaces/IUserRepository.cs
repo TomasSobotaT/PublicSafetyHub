@@ -5,5 +5,7 @@ namespace PublicSafetyHub.Data.Repositories.Interfaces;
 
 public interface IUserRepository : IExtendedBaseRepository<UserEntity, int>
 {
-    Task<UserEntity> GetUserByEmailAsync(string normalizedEmail);
+    Task<UserEntity> GetUserByEmailAsync(string email);
+
+    Task<bool> UserExistsByEmailAsync(string email);
 }

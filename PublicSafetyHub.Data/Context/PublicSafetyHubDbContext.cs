@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Base.Entities.Base;
+using PublicSafetyHub.Data.Conventions;
 
 namespace PublicSafetyHub.Data.Context;
 
@@ -28,16 +29,16 @@ public class PublicSafetyHubDbContext(DbContextOptions<PublicSafetyHubDbContext>
         return base.SaveChangesAsync();
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+        configurationBuilder.Conventions.Add(_ => new DateTimeConvention());
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PublicSafetyHubDbContext).Assembly);
-
-        foreach (var entityType in modelBuilder.Model.GetEntityTypes().Where(entityType => typeof(IExtendedBaseEntity).IsAssignableFrom(entityType.ClrType)))
-        {
-            modelBuilder.Entity(entityType.ClrType).Property(nameof(IExtendedBaseEntity.CreatedAt)).HasColumnType("timestamp without time zone");
-            modelBuilder.Entity(entityType.ClrType).Property(nameof(IExtendedBaseEntity.UpdatedAt)).HasColumnType("timestamp without time zone");
-        }
     }
 
     private void SetEntityTimestamps()

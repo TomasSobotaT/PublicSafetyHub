@@ -1,3 +1,9 @@
 
 
 - Při `Nullable=disable` neinicializuj referenční vlastnosti jen kvůli nullability, např. nepoužívej `= string.Empty` ani `= null!`. Inicializace kolekcí potřebné pro jejich použití a skutečné provozní výchozí hodnoty zůstávají.
+
+- AuthService nezná DbContext ani EF API a neskládá LINQ databázové dotazy. Používá metody IUserRepository; obsazenost e-mailu včetně smazaných účtů kontroluje UserExistsByEmailAsync. Dotaz a IgnoreQueryFilters patří do implementace repozitáře.
+- Repozitáře pouze načítají entity a připravují změny; nemají Commit ani SaveChanges. IUnitOfWork v Base vystavuje SaveChangesAsync, BeginTransactionAsync, CommitTransactionAsync a RollbackTransactionAsync. Implementace v Data drží transakci uvnitř, CommitTransactionAsync uloží změny a potvrdí transakci; rollback odpojí sledované entity, aby se změny po vrácení transakce později neuložily. Ve službách nepoužívej try/catch pro řízení transakcí. AuthService při očekávaném neúspěchu volá rollback před vrácením výsledku; při výjimce vrátí nepotvrzenou transakci UnitOfWork.DisposeAsync při ukončení DI scope. Scoped DI uvolňuje UnitOfWork, které při dispose vrátí případnou nepotvrzenou transakci; sdílený DbContext vlastní a uvolňuje DI. Identity, OpenIddict, repozitáře a UnitOfWork sdílejí jednu scoped instanci kontextu. Identity a OpenIddict si interně ukládají své operace, společnou transakci řídí UnitOfWork. Obal RepositoryTransaction se nepoužívá.
+- Nullable ID uživatele při kontrolách načítej do proměnné a ověřuj přes HasValue, nepoužívej vazebný pattern is not { } v podmínce nebo ternárním výrazu. Vnořené asynchronní získání hodnoty pro parametr rozděl do proměnné a následného volání.
+
+- DateTime a DateTime? na našich entitách implementujících IBaseEntity mapuje společná DateTimeConvention na timestamp without time zone. Konvence je registrovaná přes ConfigureConventions; mapování časů knihovních entit Identity a OpenIddict nemění.

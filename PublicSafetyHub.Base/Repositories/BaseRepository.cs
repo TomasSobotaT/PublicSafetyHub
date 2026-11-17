@@ -8,7 +8,6 @@ namespace PublicSafetyHub.Base.Repositories;
 public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRepository<TEntity, T>
     where TEntity : class, IBaseEntity<T>
 {
-    protected readonly DbContext dbContext = dbContext;
     protected readonly DbSet<TEntity> dbSet = dbContext.Set<TEntity>();
 
     public virtual async Task AddAsync(TEntity entity)
@@ -63,16 +62,6 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
     public virtual IQueryable<TEntity> GetQueryable()
     {
         return GetDbSet().AsQueryable();
-    }
-
-    public virtual int Commit()
-    {
-        return dbContext.SaveChanges();
-    }
-
-    public virtual Task<int> CommitAsync()
-    {
-        return dbContext.SaveChangesAsync();
     }
 
     protected virtual IQueryable<TEntity> ApplySpecification(IQueryable<TEntity> query, ISpecification<TEntity> specification)

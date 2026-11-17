@@ -2,14 +2,13 @@ using System.Collections.Immutable;
 using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Base.UserContext;
-using PublicSafetyHub.Data.Context;
+using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Data.Repositories.Interfaces;
 using PublicSafetyHub.Models.Auth.Requests;
 using PublicSafetyHub.Models.Auth.Responses;
@@ -20,8 +19,8 @@ namespace PublicSafetyHub.Application.Services;
 public class AuthService(
     UserManager<UserEntity> userManager,
     SignInManager<UserEntity> signInManager,
-    IPublicSafetyHubDbContext dbContext,
     IUserRepository userRepository,
+    IUnitOfWork unitOfWork,
     IOpenIddictApplicationManager applicationManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IOpenIddictTokenManager tokenManager,
@@ -41,7 +40,7 @@ public class AuthService(
 
         var email = registerUserRequest.Email.Trim();
         var normalizedEmail = userManager.NormalizeEmail(email);
-        var emailExists = await userRepository.GetQueryable().IgnoreQueryFilters().AnyAsync(user => user.NormalizedEmail == normalizedEmail);
+        var emailExists = await userRepository.UserExistsByEmailAsync(normalizedEmail);
 
         if (emailExists)
         {
@@ -83,7 +82,8 @@ public class AuthService(
         var authorization = await authorizationManager.CreateAsync(
             (ClaimsIdentity)principal.Identity, user.Id.ToString(), applicationId, AuthorizationTypes.Permanent, grantedScopes);
 
-        principal.SetAuthorizationId(await authorizationManager.GetIdAsync(authorization));
+        var authorizationId = await authorizationManager.GetIdAsync(authorization);
+        principal.SetAuthorizationId(authorizationId);
 
         return principal;
     }
@@ -91,7 +91,9 @@ public class AuthService(
     public async Task<ApplicationResult<ClaimsPrincipal>> RefreshAsync(ClaimsPrincipal principal, IEnumerable<string> scopes)
     {
         var subject = principal.GetClaim(Claims.Subject);
-        var user = int.TryParse(subject, out var userId) ? await userRepository.GetAsync(userId) : null;
+        var userId = int.TryParse(subject, out var parsedUserId) ? parsedUserId : (int?)null;
+
+        var user = userId.HasValue ? await userRepository.GetAsync(userId.Value) : null;
 
         if (user is null || user.IsDeleted || user.IsBlocked || await userManager.IsLockedOutAsync(user))
         {
@@ -120,28 +122,31 @@ public class AuthService(
     public async Task<ApplicationResult<NoValueResult>> LogoutAsync()
     {
         var sessionId = httpUserContext.GetSessionId();
+        var userId = httpUserContext.GetUserId();
 
-        if (httpUserContext.GetUserId() is not { } userId || sessionId is null)
+        if (!userId.HasValue || sessionId == null)
         {
             return ResultHelper.Unauthorized("Invalid credentials or session.");
         }
 
         var authorization = await authorizationManager.FindByIdAsync(sessionId);
 
-        if (authorization is null || await authorizationManager.GetSubjectAsync(authorization) != userId.ToString())
+        if (authorization is null || await authorizationManager.GetSubjectAsync(authorization) != userId.Value.ToString())
         {
             return ResultHelper.Unauthorized("Invalid credentials or session.");
         }
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        await unitOfWork.BeginTransactionAsync();
 
         if (!await authorizationManager.TryRevokeAsync(authorization))
         {
+            await unitOfWork.RollbackTransactionAsync();
+
             return ResultHelper.Validation("The session has changed. Please retry signing out.");
         }
 
         await tokenManager.RevokeByAuthorizationIdAsync(sessionId);
-        await transaction.CommitAsync();
+        await unitOfWork.CommitTransactionAsync();
 
         return NoValueResult.Value;
     }
@@ -155,7 +160,14 @@ public class AuthService(
             return ResultHelper.Validation(validationResult.Errors[0].ErrorMessage);
         }
 
-        var user = httpUserContext.GetUserId() is not { } userId ? null : await userRepository.GetAsync(userId);
+        var userId = httpUserContext.GetUserId();
+
+        if (!userId.HasValue)
+        {
+            return ResultHelper.Unauthorized("Invalid credentials or session.");
+        }
+
+        var user = await userRepository.GetAsync(userId.Value);
 
         if (user is null || user.IsDeleted)
         {
@@ -169,19 +181,21 @@ public class AuthService(
             return ResultHelper.Validation("The account could not be deleted. Check your password.");
         }
 
-        await using var transaction = await dbContext.Database.BeginTransactionAsync();
+        await unitOfWork.BeginTransactionAsync();
         userRepository.Delete(user);
         var updateResult = await userManager.UpdateSecurityStampAsync(user);
 
         if (!updateResult.Succeeded)
         {
+            await unitOfWork.RollbackTransactionAsync();
+
             return MapIdentityErrors(updateResult);
         }
 
         var subject = user.Id.ToString();
         await authorizationManager.RevokeBySubjectAsync(subject);
         await tokenManager.RevokeBySubjectAsync(subject);
-        await transaction.CommitAsync();
+        await unitOfWork.CommitTransactionAsync();
 
         return NoValueResult.Value;
     }
@@ -192,8 +206,10 @@ public class AuthService(
         identity.SetClaim(Claims.Subject, user.Id.ToString());
         identity.SetClaim(Claims.Email, user.Email);
         identity.SetClaim(Claims.Name, user.UserName);
-        identity.SetClaim(AuthConstants.SecurityStampClaim, await userManager.GetSecurityStampAsync(user));
-        identity.SetClaims(Claims.Role, (await userManager.GetRolesAsync(user)).ToImmutableArray());
+        var securityStamp = await userManager.GetSecurityStampAsync(user);
+        identity.SetClaim(AuthConstants.SecurityStampClaim, securityStamp);
+        var roles = await userManager.GetRolesAsync(user);
+        identity.SetClaims(Claims.Role, roles.ToImmutableArray());
 
         var principal = new ClaimsPrincipal(identity);
         principal.SetScopes(scopes);

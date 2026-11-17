@@ -22,8 +22,4 @@ public interface IBaseRepository<TEntity, T> where TEntity : class, IBaseEntity<
     DbSet<TEntity> GetDbSet();
 
     IQueryable<TEntity> GetQueryable();
-
-    int Commit();
-
-    Task<int> CommitAsync();
 }
