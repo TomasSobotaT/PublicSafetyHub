@@ -1,10 +1,13 @@
 using System.Linq.Expressions;
+using PublicSafetyHub.Base.Filtering;
 
 namespace PublicSafetyHub.Base.Specifications;
 
 public interface ISpecification<TEntity> where TEntity : class
 {
     IEnumerable<Expression<Func<TEntity, bool>>> GetCriteria();
+
+    void ApplyPagination(PaginationRequest paginationRequest);
 
     Expression<Func<TEntity, object>> OrderBy { get; }
 

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Entities.Base;
+using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Specifications;
 
@@ -38,28 +39,19 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
         return await query.ToListAsync(cancellationToken);
     }
 
-    public virtual Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
-    {
-        return GetPagedAsync(specification, query => query, cancellationToken);
-    }
-
-    public virtual async Task<PagedResult<TResult>> GetPagedAsync<TResult>(ISpecification<TEntity> specification, Func<IQueryable<TEntity>, IQueryable<TResult>> projection, CancellationToken cancellationToken = default)
+    public virtual async Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(specification);
-        ArgumentNullException.ThrowIfNull(projection);
-
-        if (!specification.PageNumber.HasValue || !specification.PageSize.HasValue)
-        {
-            throw new ArgumentException("A paged specification must define page number and page size.", nameof(specification));
-        }
+        ArgumentNullException.ThrowIfNull(paginationRequest);
+        specification.ApplyPagination(paginationRequest);
 
         var query = GetQueryable().AsNoTracking().OrderBy(entity => entity.Id);
         var filteredQuery = SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true);
         var totalCount = await filteredQuery.CountAsync(cancellationToken);
         var pagedQuery = ApplySpecification(query, specification);
-        var items = await projection(pagedQuery).ToListAsync(cancellationToken);
+        var items = await pagedQuery.ToListAsync(cancellationToken);
 
-        return new PagedResult<TResult>
+        return new PagedResult<TEntity>
         {
             Items = items,
             TotalCount = totalCount,

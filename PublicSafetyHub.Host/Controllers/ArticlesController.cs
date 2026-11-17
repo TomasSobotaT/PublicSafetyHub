@@ -20,18 +20,18 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
     [HttpGet("{id:int}")]
     [ProducesResponseType<Article>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetArticleByIdAsync(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetArticleByIdAsync(int id)
     {
-        var result = await articleService.GetArticleByIdAsync(id, cancellationToken);
+        var result = await articleService.GetArticleByIdAsync(id);
 
         return result.ToActionResult();
     }
 
     [HttpGet]
     [ProducesResponseType<PagedResult<Article>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetArticlesAsync([FromQuery] FilteredRequest<ArticleFilter> filteredRequest, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetArticlesAsync([FromQuery] FilteredRequest<ArticleFilter> filteredRequest)
     {
-        var result = await articleService.GetArticlesAsync(filteredRequest, cancellationToken);
+        var result = await articleService.GetArticlesAsync(filteredRequest);
 
         return result.ToActionResult();
     }

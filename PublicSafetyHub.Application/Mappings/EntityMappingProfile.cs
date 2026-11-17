@@ -1,4 +1,5 @@
 using AutoMapper;
+using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Data.Specifications;
 using PublicSafetyHub.Models.Articles.Filters;
@@ -11,6 +12,7 @@ public class EntityMappingProfile : Profile
 {
     public EntityMappingProfile()
     {
+        CreateMap(typeof(PagedResult<>), typeof(PagedResult<>));
         CreateMap<ArticleEntity, Article>();
         CreateMap<ArticleFilter, ArticleSpecification>();
         CreateMap<UserEntity, User>();

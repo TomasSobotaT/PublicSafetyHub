@@ -12,9 +12,9 @@ namespace PublicSafetyHub.Application.Services;
 
 public class ArticleService(IArticleRepository articleRepository, IMapper mapper) : IArticleService
 {
-    public async Task<ApplicationResult<Article>> GetArticleByIdAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<ApplicationResult<Article>> GetArticleByIdAsync(int id)
     {
-        var article = await articleRepository.GetAsync(id, cancellationToken);
+        var article = await articleRepository.GetAsync(id);
 
         if (article is null)
         {
@@ -24,20 +24,11 @@ public class ArticleService(IArticleRepository articleRepository, IMapper mapper
         return mapper.Map<Article>(article);
     }
 
-    public async Task<ApplicationResult<PagedResult<Article>>> GetArticlesAsync(FilteredRequest<ArticleFilter> filteredRequest, CancellationToken cancellationToken = default)
+    public async Task<ApplicationResult<PagedResult<Article>>> GetArticlesAsync(FilteredRequest<ArticleFilter> filteredRequest)
     {
         var specification = filteredRequest.Filter is null ? new ArticleSpecification() : mapper.Map<ArticleSpecification>(filteredRequest.Filter);
+        var articles = await articleRepository.GetPagedAsync(specification, filteredRequest);
 
-        var articleFilter = filteredRequest.Filter;
-
-        if (articleFilter is not null && !ArticleSpecification.IsTypeSupported(articleFilter.Type))
-        {
-            return ResultHelper.Validation("Article type must be Police, Firefighters or Army.");
-        }
-
-        specification.ApplyPagination(filteredRequest);
-        var articles = await articleRepository.GetPagedAsync(specification, query => mapper.ProjectTo<Article>(query), cancellationToken);
-
-        return articles;
+        return mapper.Map<PagedResult<Article>>(articles);
     }
 }
