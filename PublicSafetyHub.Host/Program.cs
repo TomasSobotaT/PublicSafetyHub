@@ -1,5 +1,4 @@
 using Asp.Versioning.ApiExplorer;
-using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Host.BuilderExtensions;
 using PublicSafetyHub.Data.Context;
 
@@ -22,6 +21,7 @@ if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Develop
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

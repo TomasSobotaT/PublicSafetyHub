@@ -20,6 +20,9 @@ public static class OpenApiServiceCollectionExtension
         }).AddOpenApi(versionedOptions =>
         {
             var options = versionedOptions.Document;
+            options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+            options.AddSchemaTransformer<NumericSchemaTransformer>();
+            options.AddOperationTransformer<OperationIdTransformer>();
             options.AddOperationTransformer<TokenOperationTransformer>();
             options.AddDocumentTransformer((document, context, _) =>
             {

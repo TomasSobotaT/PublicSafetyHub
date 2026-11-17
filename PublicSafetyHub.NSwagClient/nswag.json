@@ -1,0 +1,27 @@
+{
+  "runtime": "Net100",
+  "documentGenerator": {
+    "fromDocument": {
+      "url": "$(OpenApiUrl)"
+    }
+  },
+  "codeGenerators": {
+    "openApiToCSharpClient": {
+      "className": "{controller}Client",
+      "namespace": "PublicSafetyHub.NSwagClient.V1",
+      "operationGenerationMode": "MultipleClientsFromOperationId",
+      "generateClientInterfaces": true,
+      "injectHttpClient": true,
+      "disposeHttpClient": false,
+      "useBaseUrl": false,
+      "generateOptionalParameters": true,
+      "jsonLibrary": "SystemTextJson",
+      "dateType": "System.DateTime",
+      "dateTimeType": "System.DateTime",
+      "responseArrayType": "System.Collections.Generic.List",
+      "arrayType": "System.Collections.Generic.List",
+      "generateNullableReferenceTypes": false,
+      "output": "Generated/PublicSafetyHubClient.g.cs"
+    }
+  }
+}

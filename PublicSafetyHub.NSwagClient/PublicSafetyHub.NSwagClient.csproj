@@ -4,4 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="NSwag.MSBuild" Version="14.7.1" PrivateAssets="all" />
+  </ItemGroup>
 </Project>

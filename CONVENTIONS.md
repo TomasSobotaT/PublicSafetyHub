@@ -35,3 +35,9 @@
 - VS Code má v .vscode/settings.json zapnutý fullSolution pro dotnet.backgroundAnalysis.analyzerDiagnosticsScope a compilerDiagnosticsScope. V multi-root workspace nastav stejné hodnoty také v jeho sekci settings; samotné MSBuild vlastnosti neurčují rozsah živé analýzy editoru.
 
 - .editorconfig preferuje primary konstruktory přes csharp_style_prefer_primary_constructors=true a hlásí možnosti převodu jako warning IDE0290.
+
+- NSwag klient se generuje pouze ručně z běžícího API příkazem dotnet msbuild PublicSafetyHub.NSwagClient/PublicSafetyHub.NSwagClient.csproj -t:GenerateApiClient. Běžný build klienta ani solution generování nespouští. Target v PublicSafetyHub.NSwagClient/Directory.Build.targets používá OpenApiUrl (výchozí https://localhost:7102/openapi/v1.json), kterou lze přepsat parametrem -p:OpenApiUrl=... . NSwag.MSBuild 14.7.1 s runtime Net100 generuje Generated/PublicSafetyHubClient.g.cs podle nswag.json. Klienti AuthClient/IAuthClient a ArticlesClient/IArticlesClient i DTO jsou v PublicSafetyHub.NSwagClient.V1; používají předaný HttpClient s BaseAddress a System.Text.Json. Časy jsou DateTime. Klient nemá ProjectReference na Host. Build-time export OpenAPI, balíček Microsoft.Extensions.ApiDescription.Server a režim GetDocument.Insider jsou odstraněné. Číselná OpenAPI schémata se normalizují na integer/number pro korektní NSwag DTO bez změny runtime JSON deserializace; OperationId má tvar Controller_Action. Generovaný kód neupravuj ručně.
+
+- Úpravy OpenAPI pro NSwag jsou oddělené transformery v Host/BuilderExtensions: NumericSchemaTransformer upravuje číselná schémata, OperationIdTransformer nastavuje Controller_Action. OpenApiServiceCollectionExtension je pouze registruje přes AddSchemaTransformer a AddOperationTransformer.
+
+- Ruční generování NSwag klienta spouští také PublicSafetyHub.NSwagClient/GenerateClient.ps1. Skript obnoví NuGet závislosti a zavolá GenerateApiClient; parametr OpenApiUrl přepisuje adresu běžícího API.
