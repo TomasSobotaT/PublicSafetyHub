@@ -7,3 +7,5 @@
 - Nullable ID uživatele při kontrolách načítej do proměnné a ověřuj přes HasValue, nepoužívej vazebný pattern is not { } v podmínce nebo ternárním výrazu. Vnořené asynchronní získání hodnoty pro parametr rozděl do proměnné a následného volání.
 
 - DateTime a DateTime? na našich entitách implementujících IBaseEntity mapuje společná DateTimeConvention na timestamp without time zone. Konvence je registrovaná přes ConfigureConventions; mapování časů knihovních entit Identity a OpenIddict nemění.
+
+- OpenIddict používá klíče z AuthOptions místo certifikátů: SigningPrivateKey je PEM RSA privátní klíč (alespoň 2048 bitů), EncryptionKey je Base64 kódovaných 32 náhodných bajtů. appsettings.Development.json obsahuje pouze veřejné vývojové klíče; pro produkci nastav vlastní stabilní klíče přes secrets nebo prostředí. Klíče se při každém startu negenerují a všechny instance musí používat shodné klíče. Změna klíčů bez zachování starých zneplatní již vydané tokeny.

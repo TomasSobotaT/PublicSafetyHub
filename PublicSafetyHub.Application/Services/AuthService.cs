@@ -79,8 +79,7 @@ public class AuthService(
         var applicationId = await applicationManager.GetIdAsync(client);
         var grantedScopes = scopes.ToImmutableArray();
         var principal = await CreatePrincipalAsync(user, grantedScopes);
-        var authorization = await authorizationManager.CreateAsync(
-            (ClaimsIdentity)principal.Identity, user.Id.ToString(), applicationId, AuthorizationTypes.Permanent, grantedScopes);
+        var authorization = await authorizationManager.CreateAsync((ClaimsIdentity)principal.Identity, user.Id.ToString(), applicationId, AuthorizationTypes.Permanent, grantedScopes);
 
         var authorizationId = await authorizationManager.GetIdAsync(authorization);
         principal.SetAuthorizationId(authorizationId);

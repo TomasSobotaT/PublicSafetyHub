@@ -1,8 +1,9 @@
-using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
 using PublicSafetyHub.Base.Extensions;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
 using OpenIddict.Abstractions;
 using PublicSafetyHub.Base.Auth;
@@ -13,7 +14,7 @@ namespace PublicSafetyHub.Host.BuilderExtensions;
 
 public static class AuthServiceCollectionExtension
 {
-    public static IServiceCollection AddAuthRegistration(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+    public static IServiceCollection AddAuthRegistration(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddConfiguration<IAuthOptions, AuthOptions>(configuration, options =>
         {
@@ -32,23 +33,35 @@ public static class AuthServiceCollectionExtension
                 throw new InvalidOperationException("Invalid token lifetime.");
             }
 
-            if (!environment.IsDevelopment() && (string.IsNullOrWhiteSpace(options.SigningCertificatePath) || string.IsNullOrWhiteSpace(options.EncryptionCertificatePath)))
+            if (string.IsNullOrWhiteSpace(options.SigningPrivateKey) || string.IsNullOrWhiteSpace(options.EncryptionKey))
             {
-                throw new InvalidOperationException("Configure AuthOptions:SigningCertificatePath and AuthOptions:EncryptionCertificatePath with their passwords using secrets for production.");
+                throw new InvalidOperationException("Configure AuthOptions:SigningPrivateKey and AuthOptions:EncryptionKey.");
+            }
+
+            RsaSecurityKey signingKey;
+            byte[] encryptionKeyBytes;
+
+            try
+            {
+                using var rsa = RSA.Create();
+                rsa.ImportFromPem(options.SigningPrivateKey);
+                signingKey = new RsaSecurityKey(rsa.ExportParameters(includePrivateParameters: true));
+                encryptionKeyBytes = Convert.FromBase64String(options.EncryptionKey);
+            }
+            catch (Exception exception) when (exception is ArgumentException or CryptographicException or FormatException)
+            {
+                throw new InvalidOperationException("AuthOptions:SigningPrivateKey must be a PEM RSA private key and AuthOptions:EncryptionKey must be Base64 encoded.", exception);
+            }
+
+            if (signingKey.KeySize < 2048 || encryptionKeyBytes.Length != 32)
+            {
+                throw new InvalidOperationException("AuthOptions:SigningPrivateKey must contain at least 2048 bits and AuthOptions:EncryptionKey must contain exactly 32 bytes.");
             }
 
             services.AddOpenIddict().AddServer(server =>
             {
-                if (environment.IsDevelopment())
-                {
-                    server.AddDevelopmentSigningCertificate();
-                    server.AddDevelopmentEncryptionCertificate();
-                }
-                else
-                {
-                    server.AddSigningCertificate(X509CertificateLoader.LoadPkcs12FromFile(options.SigningCertificatePath, options.SigningCertificatePassword));
-                    server.AddEncryptionCertificate(X509CertificateLoader.LoadPkcs12FromFile(options.EncryptionCertificatePath, options.EncryptionCertificatePassword));
-                }
+                server.AddSigningKey(signingKey);
+                server.AddEncryptionKey(new SymmetricSecurityKey(encryptionKeyBytes));
             });
         });
 

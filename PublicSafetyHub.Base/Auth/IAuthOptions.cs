@@ -10,11 +10,7 @@ public interface IAuthOptions
 
     int RefreshTokenDays { get; }
 
-    string SigningCertificatePath { get; }
+    string SigningPrivateKey { get; }
 
-    string SigningCertificatePassword { get; }
-
-    string EncryptionCertificatePath { get; }
-
-    string EncryptionCertificatePassword { get; }
+    string EncryptionKey { get; }
 }
