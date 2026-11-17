@@ -1,12 +1,12 @@
 using FluentValidation;
 using PublicSafetyHub.Application.Services;
 using PublicSafetyHub.Application.Services.Interfaces;
-using PublicSafetyHub.Application.Validators.Auth;
 using PublicSafetyHub.Base.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Data.Repositories;
 using PublicSafetyHub.Data.Repositories.Interfaces;
 using PublicSafetyHub.Data.UnitOfWork;
+using PublicSafetyHub.Application.Validators;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 

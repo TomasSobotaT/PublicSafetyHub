@@ -1,7 +1,7 @@
 using FluentValidation;
 using PublicSafetyHub.Models.Auth.Requests;
 
-namespace PublicSafetyHub.Application.Validators.Auth;
+namespace PublicSafetyHub.Application.Validators;
 
 public class RegisterUserRequestValidator : AbstractValidator<RegisterUserRequest>
 {
