@@ -1,0 +1,117 @@
+﻿# Stop searching parent directories for additional EditorConfig files.
+root = true
+
+[*.cs]
+# Place using directives outside namespaces.
+csharp_using_directive_placement = outside_namespace:warning
+# Report using directives placed inside namespaces as warnings.
+dotnet_diagnostic.IDE0065.severity = warning
+
+# Place opening braces on a new line for all constructs.
+csharp_new_line_before_open_brace = all
+# Indent statements inside blocks.
+csharp_indent_block_contents = true
+# Keep braces aligned with the surrounding declaration or statement.
+csharp_indent_braces = false
+# Indent statements inside switch cases.
+csharp_indent_case_contents = true
+# Indent the block inside a switch case.
+csharp_indent_case_contents_when_block = true
+# Indent case labels inside switch statements.
+csharp_indent_switch_labels = true
+# Report formatting violations as warnings.
+dotnet_diagnostic.IDE0055.severity = warning
+
+# Prefer file-scoped namespace declarations.
+csharp_style_namespace_declarations = file_scoped:warning
+# Require braces even for single-statement control flow.
+csharp_prefer_braces = true:warning
+# Report block-scoped namespaces that can be file-scoped as warnings.
+dotnet_diagnostic.IDE0161.severity = warning
+# Report missing control-flow braces as warnings.
+dotnet_diagnostic.IDE0011.severity = warning
+
+# Prefer switch expressions when a switch statement can be converted.
+csharp_style_prefer_switch_expression = true:warning
+# Prefer throw expressions where they can replace throw statements.
+csharp_style_throw_expression = true:warning
+# Report opportunities to use switch expressions as warnings.
+dotnet_diagnostic.IDE0066.severity = warning
+# Report opportunities to use throw expressions as warnings.
+dotnet_diagnostic.IDE0016.severity = warning
+
+# Avoid unnecessary this qualification on fields.
+dotnet_style_qualification_for_field = false:warning
+# Avoid unnecessary this qualification on properties.
+dotnet_style_qualification_for_property = false:warning
+# Avoid unnecessary this qualification on methods.
+dotnet_style_qualification_for_method = false:warning
+# Avoid unnecessary this qualification on events.
+dotnet_style_qualification_for_event = false:warning
+# Report unnecessary this qualification as warnings.
+dotnet_diagnostic.IDE0003.severity = warning
+
+# Prefer null-coalescing expressions over equivalent null checks.
+dotnet_style_coalesce_expression = true:warning
+# Prefer null-conditional access over equivalent null checks.
+dotnet_style_null_propagation = true:warning
+# Report opportunities to use null coalescing for nullable values as warnings.
+dotnet_diagnostic.IDE0029.severity = warning
+# Report opportunities to use null coalescing for reference values as warnings.
+dotnet_diagnostic.IDE0030.severity = warning
+# Report opportunities to use null-conditional access as warnings.
+dotnet_diagnostic.IDE0031.severity = warning
+# Report additional null-check patterns replaceable with null coalescing as warnings.
+dotnet_diagnostic.IDE0270.severity = warning
+
+# Prefer collection expressions when the source and target types loosely match.
+dotnet_style_prefer_collection_expression = when_types_loosely_match:warning
+# Report array initializations replaceable with collection expressions as warnings.
+dotnet_diagnostic.IDE0300.severity = warning
+# Report empty collections replaceable with collection expressions as warnings.
+dotnet_diagnostic.IDE0301.severity = warning
+# Report stackalloc expressions replaceable with collection expressions as warnings.
+dotnet_diagnostic.IDE0302.severity = warning
+# Report collection creation calls replaceable with collection expressions as warnings.
+dotnet_diagnostic.IDE0303.severity = warning
+# Report collection builder patterns replaceable with collection expressions as warnings.
+dotnet_diagnostic.IDE0304.severity = warning
+# Report fluent collection creation replaceable with collection expressions as warnings.
+dotnet_diagnostic.IDE0305.severity = warning
+
+# Require explicit access modifiers except on interface members.
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:warning
+# Report missing required access modifiers as warnings.
+dotnet_diagnostic.IDE0040.severity = warning
+
+# Apply the async naming rule to methods and local functions.
+dotnet_naming_symbols.async_methods.applicable_kinds = method, local_function
+# Select only methods and local functions declared with the async modifier.
+dotnet_naming_symbols.async_methods.required_modifiers = async
+# Use PascalCase for names covered by the async naming rule.
+dotnet_naming_style.async_suffix.capitalization = pascal_case
+# Require names covered by the async naming rule to end with Async.
+dotnet_naming_style.async_suffix.required_suffix = Async
+# Select async methods and local functions for the naming rule.
+dotnet_naming_rule.async_methods_end_with_async.symbols = async_methods
+# Apply the naming style that requires the Async suffix.
+dotnet_naming_rule.async_methods_end_with_async.style = async_suffix
+# Report violations of the async naming rule as warnings.
+dotnet_naming_rule.async_methods_end_with_async.severity = warning
+# Report configured naming rule violations as warnings.
+dotnet_diagnostic.IDE1006.severity = warning
+
+# Report unused using directives as warnings.
+dotnet_diagnostic.IDE0005.severity = warning
+# Suggest removing unused parameters.
+dotnet_diagnostic.IDE0060.severity = suggestion
+
+# Report disposable objects that may not be disposed before leaving scope as warnings.
+dotnet_diagnostic.CA2000.severity = warning
+# Report invalid arguments passed to argument exception constructors as warnings.
+dotnet_diagnostic.CA2208.severity = warning
+
+# Prefer primary constructors where conversion is possible.
+csharp_style_prefer_primary_constructors = true:warning
+# Report opportunities to use primary constructors as warnings.
+dotnet_diagnostic.IDE0290.severity = warning

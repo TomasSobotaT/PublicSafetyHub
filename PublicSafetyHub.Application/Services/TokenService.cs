@@ -66,8 +66,8 @@ public class TokenService(IAuthService authService, IAuthOptions authOptions, IH
         return OAuthError(Errors.UnsupportedGrantType, "The grant type is not supported.");
     }
 
-    private static ForbidResult OAuthError(string error, string description) {
-
+    private static ForbidResult OAuthError(string error, string description)
+    {
         return new ForbidResult(
            OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
            new AuthenticationProperties(new Dictionary<string, string>

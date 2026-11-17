@@ -1,6 +1,6 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 

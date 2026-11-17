@@ -1,7 +1,6 @@
 ﻿using System.Linq.Expressions;
 using PublicSafetyHub.Base.Specifications;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Data.Specifications;
 
