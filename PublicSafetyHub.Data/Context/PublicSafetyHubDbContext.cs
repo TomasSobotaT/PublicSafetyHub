@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Base.Entities.Base;
 using PublicSafetyHub.Data.Conventions;
 
 namespace PublicSafetyHub.Data.Context;
@@ -10,24 +9,7 @@ namespace PublicSafetyHub.Data.Context;
 public class PublicSafetyHubDbContext(DbContextOptions<PublicSafetyHubDbContext> options)
     : IdentityDbContext<UserEntity, IdentityRole<int>, int>(options), IPublicSafetyHubDbContext
 {
-    public override int SaveChanges(bool acceptAllChangesOnSuccess)
-    {
-        SetEntityTimestamps();
-
-        return base.SaveChanges(acceptAllChangesOnSuccess);
-    }
-
-    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken _ = default)
-    {
-        SetEntityTimestamps();
-
-        return base.SaveChangesAsync(acceptAllChangesOnSuccess);
-    }
-
-    public Task<int> SaveChangesAsync()
-    {
-        return base.SaveChangesAsync();
-    }
+    public DbSet<ArticleEntity> Articles { get; set; }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -39,23 +21,5 @@ public class PublicSafetyHubDbContext(DbContextOptions<PublicSafetyHubDbContext>
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PublicSafetyHubDbContext).Assembly);
-    }
-
-    private void SetEntityTimestamps()
-    {
-        var now = DateTime.Now;
-        foreach (var entry in ChangeTracker.Entries<IExtendedBaseEntity>())
-        {
-            if (entry.State == EntityState.Added)
-            {
-                entry.Entity.CreatedAt = now;
-                entry.Entity.UpdatedAt = null;
-            }
-            else if (entry.State == EntityState.Modified)
-            {
-                entry.Property(entity => entity.CreatedAt).IsModified = false;
-                entry.Entity.UpdatedAt = now;
-            }
-        }
     }
 }

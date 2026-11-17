@@ -7,7 +7,7 @@ namespace PublicSafetyHub.Application.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<ApplicationResult<UserResponse>> RegisterUserAsync(RegisterUserRequest registerUserRequest);
+    Task<ApplicationResult<User>> RegisterUserAsync(RegisterUserRequest registerUserRequest);
 
     Task<ApplicationResult<ClaimsPrincipal>> LoginAsync(string email, string password, string clientId, IEnumerable<string> scopes);
 

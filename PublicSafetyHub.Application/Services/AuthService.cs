@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Security.Claims;
+using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
@@ -21,6 +22,7 @@ public class AuthService(
     SignInManager<UserEntity> signInManager,
     IUserRepository userRepository,
     IUnitOfWork unitOfWork,
+    IMapper mapper,
     IOpenIddictApplicationManager applicationManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IOpenIddictTokenManager tokenManager,
@@ -29,7 +31,7 @@ public class AuthService(
     IValidator<DeleteUserRequest> deleteUserRequestValidator)
     : IAuthService
 {
-    public async Task<ApplicationResult<UserResponse>> RegisterUserAsync(RegisterUserRequest registerUserRequest)
+    public async Task<ApplicationResult<User>> RegisterUserAsync(RegisterUserRequest registerUserRequest)
     {
         var validationResult = await registerUserRequestValidator.ValidateAsync(registerUserRequest);
 
@@ -48,14 +50,14 @@ public class AuthService(
         }
 
         var user = new UserEntity { UserName = email, Email = email };
-        var result = await userManager.CreateAsync(user, registerUserRequest.Password);
+        var result = await userRepository.CreateUserAsync(user, registerUserRequest.Password);
 
         if (!result.Succeeded)
         {
             return MapIdentityErrors(result);
         }
 
-        return new UserResponse { Id = user.Id, Email = user.Email! };
+        return mapper.Map<User>(user);
     }
 
     public async Task<ApplicationResult<ClaimsPrincipal>> LoginAsync(string email, string password, string clientId, IEnumerable<string> scopes)

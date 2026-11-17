@@ -26,31 +26,45 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
         Update(entity);
     }
 
-    public virtual async Task<TEntity> GetAsync(T id)
+    public virtual async Task<TEntity> GetAsync(T id, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable().FirstOrDefaultAsync(entity => entity.Id.Equals(id));
+        return await GetQueryable().AsNoTracking().FirstOrDefaultAsync(entity => entity.Id.Equals(id), cancellationToken);
     }
 
-    public virtual async Task<List<TEntity>> GetAllAsync(ISpecification<TEntity> specification = null)
+    public virtual async Task<List<TEntity>> GetAllAsync(ISpecification<TEntity> specification = null, CancellationToken cancellationToken = default)
     {
-        var query = ApplySpecification(GetQueryable(), specification);
+        var query = ApplySpecification(GetQueryable().AsNoTracking().OrderBy(entity => entity.Id), specification);
 
-        return await query.ToListAsync();
+        return await query.ToListAsync(cancellationToken);
     }
 
-    public virtual async Task<PagedResult<TEntity>> GetPagedAsync(int pageNumber, int pageSize, ISpecification<TEntity> specification = null)
+    public virtual Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, CancellationToken cancellationToken = default)
     {
-        var query = ApplySpecification(GetQueryable(), specification);
-        var totalCount = await query.CountAsync();
-        var offset = checked((pageNumber - 1) * pageSize);
-        var items = await query.Skip(offset).Take(pageSize).ToListAsync();
+        return GetPagedAsync(specification, query => query, cancellationToken);
+    }
 
-        return new PagedResult<TEntity>
+    public virtual async Task<PagedResult<TResult>> GetPagedAsync<TResult>(ISpecification<TEntity> specification, Func<IQueryable<TEntity>, IQueryable<TResult>> projection, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(specification);
+        ArgumentNullException.ThrowIfNull(projection);
+
+        if (!specification.PageNumber.HasValue || !specification.PageSize.HasValue)
+        {
+            throw new ArgumentException("A paged specification must define page number and page size.", nameof(specification));
+        }
+
+        var query = GetQueryable().AsNoTracking().OrderBy(entity => entity.Id);
+        var filteredQuery = SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true);
+        var totalCount = await filteredQuery.CountAsync(cancellationToken);
+        var pagedQuery = ApplySpecification(query, specification);
+        var items = await projection(pagedQuery).ToListAsync(cancellationToken);
+
+        return new PagedResult<TResult>
         {
             Items = items,
             TotalCount = totalCount,
-            PageNumber = pageNumber,
-            PageSize = pageSize
+            PageNumber = specification.PageNumber.Value,
+            PageSize = specification.PageSize.Value
         };
     }
 
@@ -66,28 +80,6 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
 
     protected virtual IQueryable<TEntity> ApplySpecification(IQueryable<TEntity> query, ISpecification<TEntity> specification)
     {
-        if (specification?.Criteria is not null)
-        {
-            query = query.Where(specification.Criteria);
-        }
-
-        if (specification is not null)
-        {
-            foreach (var include in specification.Includes)
-            {
-                query = query.Include(include);
-            }
-        }
-
-        if (specification?.OrderBy is not null)
-        {
-            var orderedQuery = specification.OrderDescending
-                ? query.OrderByDescending(specification.OrderBy)
-                : query.OrderBy(specification.OrderBy);
-
-            return orderedQuery.ThenBy(entity => entity.Id);
-        }
-
-        return query.OrderBy(entity => entity.Id);
+        return SpecificationEvaluator.GetQuery(query, specification);
     }
 }

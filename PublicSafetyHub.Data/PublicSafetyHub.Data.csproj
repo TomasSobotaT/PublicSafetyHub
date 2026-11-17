@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />
+    <ProjectReference Include="..\PublicSafetyHub.Models\PublicSafetyHub.Models.csproj" />
     <ProjectReference Include="..\PublicSafetyHub.Base\PublicSafetyHub.Base.csproj" />
   </ItemGroup>
 </Project>

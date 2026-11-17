@@ -1,14 +1,44 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using PublicSafetyHub.Base.Filtering;
 
 namespace PublicSafetyHub.Base.Specifications;
 
-public class Specification<TEntity> : ISpecification<TEntity> where TEntity : class
+public abstract class Specification<TEntity> : ISpecification<TEntity> where TEntity : class
 {
-    public Expression<Func<TEntity, bool>> Criteria { get; set; }
+    protected abstract IReadOnlyDictionary<string, Expression<Func<TEntity, object>>> SortColumns { get; }
 
-    public List<Expression<Func<TEntity, object>>> Includes { get; } = [];
+    protected abstract Expression<Func<TEntity, object>> IdSelector { get; }
 
-    public Expression<Func<TEntity, object>> OrderBy { get; set; }
+    public Expression<Func<TEntity, object>> OrderBy { get; private set; }
 
-    public bool OrderDescending { get; set; }
+    public Expression<Func<TEntity, object>> ThenBy { get; private set; }
+
+    public bool SortDescending { get; private set; }
+
+    public int? PageNumber { get; private set; }
+
+    public int? PageSize { get; private set; }
+
+    public abstract IEnumerable<Expression<Func<TEntity, bool>>> GetCriteria();
+
+    public void ApplyPagination(PaginationRequest paginationRequest)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(paginationRequest.PageNumber, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(paginationRequest.PageSize, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(paginationRequest.PageSize, 100);
+
+        var sortBy = string.IsNullOrWhiteSpace(paginationRequest.SortBy) ? "Id" : paginationRequest.SortBy.Trim();
+
+        if (!SortColumns.TryGetValue(sortBy, out var orderBy))
+        {
+            sortBy = "Id";
+            orderBy = IdSelector;
+        }
+
+        OrderBy = orderBy;
+        ThenBy = string.Equals(sortBy, "Id", StringComparison.OrdinalIgnoreCase) ? null : IdSelector;
+        SortDescending = string.Equals(paginationRequest.SortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+        PageNumber = paginationRequest.PageNumber;
+        PageSize = paginationRequest.PageSize;
+    }
 }

@@ -20,7 +20,7 @@ public class AuthController(IAuthService authService, ITokenService tokenService
 {
     [AllowAnonymous]
     [HttpPost("RegisterUser")]
-    [ProducesResponseType<UserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<User>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RegisterUserAsync(RegisterUserRequest registerUserRequest)
     {
