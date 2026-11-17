@@ -8,7 +8,8 @@ builder.Services.AddControllers();
 builder.Services.AddVersionedOpenApi();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddDependencyInjectionRegistration(builder.Configuration);
-builder.Services.AddAuthRegistration(builder.Configuration);
+builder.Services.AddHttpClientRegistration();
+builder.Services.AddAuthRegistration();
 
 var app = builder.Build();
 

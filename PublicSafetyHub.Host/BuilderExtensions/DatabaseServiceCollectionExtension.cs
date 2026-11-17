@@ -9,7 +9,7 @@ public static class DatabaseServiceCollectionExtension
     public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Set ConnectionStrings:DefaultConnection using user secrets or environment variables.");
-       
+
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
         services.AddDbContext<PublicSafetyHubDbContext>(options =>

@@ -14,11 +14,11 @@ public interface IBaseRepository<TEntity, T> where TEntity : class, IBaseEntity<
 
     void Delete(TEntity entity);
 
-    Task<TEntity> GetAsync(T id, CancellationToken cancellationToken = default);
+    Task<TEntity> GetAsync(T id);
 
-    Task<List<TEntity>> GetAllAsync(ISpecification<TEntity> specification = null, CancellationToken cancellationToken = default);
+    Task<List<TEntity>> GetAllAsync(ISpecification<TEntity> specification = null);
 
-    Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest, CancellationToken cancellationToken = default);
+    Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest);
 
     DbSet<TEntity> GetDbSet();
 

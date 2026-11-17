@@ -4,4 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />
+  </ItemGroup>
 </Project>

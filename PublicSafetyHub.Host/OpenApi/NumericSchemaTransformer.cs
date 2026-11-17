@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
-namespace PublicSafetyHub.Host.BuilderExtensions;
+namespace PublicSafetyHub.Host.OpenApi;
 
 public class NumericSchemaTransformer : IOpenApiSchemaTransformer
 {

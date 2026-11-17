@@ -1,21 +1,26 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using PublicSafetyHub.Application.Jobs;
+using PublicSafetyHub.Application.Mappings;
 using PublicSafetyHub.Application.Services;
 using PublicSafetyHub.Application.Services.Interfaces;
+using PublicSafetyHub.Application.Validators;
+using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.Extensions;
+using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Base.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Data.Repositories;
 using PublicSafetyHub.Data.Repositories.Interfaces;
 using PublicSafetyHub.Data.UnitOfWork;
-using PublicSafetyHub.Application.Validators;
-using PublicSafetyHub.Application.Mappings;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 
 public static class DependencyInjectionExtension
 {
-    public static IServiceCollection AddDependencyInjectionRegistration(this IServiceCollection services)
+    public static IServiceCollection AddDependencyInjectionRegistration(this IServiceCollection services, IConfiguration configuration)
     {
+        services.RegisterConfigurations(configuration);
         services.RegisterServices();
         services.RegisterRepositories();
         services.RegisterValidators();
@@ -31,6 +36,7 @@ public static class DependencyInjectionExtension
         services.TryAddScoped<IHttpUserContext, HttpUserContext>();
         services.TryAddScoped<IAuthService, AuthService>();
         services.TryAddScoped<IArticleService, ArticleService>();
+        services.TryAddScoped<IArmyArticleImportService, ArmyArticleImportService>();
         services.TryAddScoped<ITokenService, TokenService>();
     }
 
@@ -48,11 +54,18 @@ public static class DependencyInjectionExtension
 
     private static void RegisterMappings(this IServiceCollection services)
     {
-        services.AddAutoMapper(typeof(EntityMappingProfile));
+        services.AddAutoMapper(typeof(AutomapperProfile));
     }
 
     private static void RegisterHostedServices(this IServiceCollection services)
     {
         services.AddHostedService<AuthClientInitializer>();
+        services.AddHostedService<ArmyArticleImportJob>();
+    }
+
+    private static void RegisterConfigurations(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddConfiguration<IArmyArticleImportOptions, ArmyArticleImportOptions>(configuration);
+        services.AddConfiguration<IAuthOptions, AuthOptions>(configuration);
     }
 }

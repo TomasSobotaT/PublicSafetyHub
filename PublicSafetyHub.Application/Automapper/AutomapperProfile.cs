@@ -1,16 +1,15 @@
 using AutoMapper;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Data.Specifications;
-using PublicSafetyHub.Models.Articles.Filters;
-using PublicSafetyHub.Models.Articles.Responses;
+using PublicSafetyHub.Core.Specifications;
+using PublicSafetyHub.Models.Articles;
 using PublicSafetyHub.Models.Auth.Responses;
 
 namespace PublicSafetyHub.Application.Mappings;
 
-public class EntityMappingProfile : Profile
+public class AutomapperProfile : Profile
 {
-    public EntityMappingProfile()
+    public AutomapperProfile()
     {
         CreateMap(typeof(PagedResult<>), typeof(PagedResult<>));
         CreateMap<ArticleEntity, Article>();

@@ -27,19 +27,19 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
         Update(entity);
     }
 
-    public virtual async Task<TEntity> GetAsync(T id, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity> GetAsync(T id)
     {
-        return await GetQueryable().AsNoTracking().FirstOrDefaultAsync(entity => entity.Id.Equals(id), cancellationToken);
+        return await GetQueryable().AsNoTracking().FirstOrDefaultAsync(entity => entity.Id.Equals(id));
     }
 
-    public virtual async Task<List<TEntity>> GetAllAsync(ISpecification<TEntity> specification = null, CancellationToken cancellationToken = default)
+    public virtual async Task<List<TEntity>> GetAllAsync(ISpecification<TEntity> specification = null)
     {
         var query = ApplySpecification(GetQueryable().AsNoTracking().OrderBy(entity => entity.Id), specification);
 
-        return await query.ToListAsync(cancellationToken);
+        return await query.ToListAsync();
     }
 
-    public virtual async Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest, CancellationToken cancellationToken = default)
+    public virtual async Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest)
     {
         ArgumentNullException.ThrowIfNull(specification);
         ArgumentNullException.ThrowIfNull(paginationRequest);
@@ -47,9 +47,9 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
 
         var query = GetQueryable().AsNoTracking().OrderBy(entity => entity.Id);
         var filteredQuery = SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true);
-        var totalCount = await filteredQuery.CountAsync(cancellationToken);
+        var totalCount = await filteredQuery.CountAsync();
         var pagedQuery = ApplySpecification(query, specification);
-        var items = await pagedQuery.ToListAsync(cancellationToken);
+        var items = await pagedQuery.ToListAsync();
 
         return new PagedResult<TEntity>
         {
