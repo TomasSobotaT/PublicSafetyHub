@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Repositories;
+using PublicSafetyHub.Base.Time;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Data.Repositories.Interfaces;
@@ -12,7 +13,7 @@ public class UserRepository(PublicSafetyHubDbContext dbContext, UserManager<User
 {
     public async Task<IdentityResult> CreateUserAsync(UserEntity user, string password)
     {
-        user.CreatedAt = DateTime.Now;
+        user.CreatedAt = CzechTime.Now;
         user.UpdatedAt = null;
 
         return await userManager.CreateAsync(user, password);

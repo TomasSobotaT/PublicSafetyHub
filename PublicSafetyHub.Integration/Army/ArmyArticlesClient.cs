@@ -8,9 +8,4 @@ public class ArmyArticlesClient(HttpClient httpClient, IArmyArticleImportOptions
     {
         return httpClient.GetAsync(options.FeedUrl);
     }
-
-    public Task<HttpResponseMessage> GetArticleAsync(Uri originUrl)
-    {
-        return httpClient.GetAsync(originUrl);
-    }
 }

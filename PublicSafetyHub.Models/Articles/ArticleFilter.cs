@@ -1,8 +1,10 @@
+using PublicSafetyHub.Core.Enums;
+
 namespace PublicSafetyHub.Models.Articles;
 
 public class ArticleFilter
 {
-    public string Type { get; set; }
+    public ArticleType? Type { get; set; }
 
     public string SearchValue { get; set; }
 }

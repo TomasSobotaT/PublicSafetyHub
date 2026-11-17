@@ -60,12 +60,12 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
         };
     }
 
-    public virtual DbSet<TEntity> GetDbSet()
+    protected virtual DbSet<TEntity> GetDbSet()
     {
         return dbSet;
     }
 
-    public virtual IQueryable<TEntity> GetQueryable()
+    protected virtual IQueryable<TEntity> GetQueryable()
     {
         return GetDbSet().AsQueryable();
     }

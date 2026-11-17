@@ -1,8 +1,12 @@
+using PublicSafetyHub.Models.Articles;
+
 namespace PublicSafetyHub.Application.Services.Interfaces;
 
 public interface IArmyArticleImportService
 {
-    Task<IReadOnlyList<Uri>> GetArticleUrlsAsync();
+    Task ImportFeedAsync(CancellationToken cancellationToken);
 
-    Task<bool> ImportAsync(Uri originUrl);
+    Task<IReadOnlyList<ArmyArticle>> GetArticlesAsync();
+
+    Task<bool> ImportAsync(ArmyArticle article);
 }

@@ -1,12 +1,13 @@
 using System.Linq.Expressions;
 using PublicSafetyHub.Base.Specifications;
 using PublicSafetyHub.Core.Entities;
+using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Core.Specifications;
 
 public class ArticleSpecification : Specification<ArticleEntity>
 {
-    public string Type { get; set; }
+    public ArticleType? Type { get; set; }
 
     public string SearchValue { get; set; }
 
@@ -28,10 +29,10 @@ public class ArticleSpecification : Specification<ArticleEntity>
     {
         var criteria = new List<Expression<Func<ArticleEntity, bool>>>();
 
-        if (!string.IsNullOrWhiteSpace(Type))
+        if (Type.HasValue)
         {
-            var type = Type.Trim().ToLowerInvariant();
-            criteria.Add(article => article.Type.ToString().ToLower() == type);
+            var type = Type.Value;
+            criteria.Add(article => article.Type == type);
         }
 
         if (!string.IsNullOrWhiteSpace(SearchValue))

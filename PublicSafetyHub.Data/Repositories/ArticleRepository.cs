@@ -8,8 +8,8 @@ namespace PublicSafetyHub.Data.Repositories;
 
 public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBaseRepository<ArticleEntity, int>(dbContext), IArticleRepository
 {
-    public Task<bool> ExistsByOriginUrlAsync(string originUrl)
+    public async Task<bool> ExistsByOriginUrlAsync(string originUrl)
     {
-        return GetQueryable().IgnoreQueryFilters().AnyAsync(article => article.OriginUrl == originUrl);
+        return await GetQueryable().IgnoreQueryFilters().AnyAsync(article => article.OriginUrl == originUrl);
     }
 }

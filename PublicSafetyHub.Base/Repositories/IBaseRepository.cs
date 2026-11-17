@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Entities.Base;
 using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
@@ -19,8 +18,4 @@ public interface IBaseRepository<TEntity, T> where TEntity : class, IBaseEntity<
     Task<List<TEntity>> GetAllAsync(ISpecification<TEntity> specification = null);
 
     Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest);
-
-    DbSet<TEntity> GetDbSet();
-
-    IQueryable<TEntity> GetQueryable();
 }
