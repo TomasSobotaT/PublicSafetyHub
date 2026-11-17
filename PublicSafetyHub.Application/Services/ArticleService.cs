@@ -3,10 +3,9 @@ using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Results;
+using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Data.Repositories.Interfaces;
-using PublicSafetyHub.Data.Specifications;
-using PublicSafetyHub.Models.Articles.Filters;
-using PublicSafetyHub.Models.Articles.Responses;
+using PublicSafetyHub.Models.Articles;
 
 namespace PublicSafetyHub.Application.Services;
 

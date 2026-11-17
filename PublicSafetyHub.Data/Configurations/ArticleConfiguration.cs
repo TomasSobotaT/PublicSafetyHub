@@ -8,12 +8,11 @@ public class ArticleConfiguration : IEntityTypeConfiguration<ArticleEntity>
 {
     public void Configure(EntityTypeBuilder<ArticleEntity> builder)
     {
-        builder.ToTable("Articles");
         builder.HasQueryFilter(article => !article.IsDeleted);
         builder.Property(article => article.Title).IsRequired().HasMaxLength(400);
         builder.Property(article => article.Content).IsRequired();
-        builder.Property(article => article.Type).HasConversion<string>().IsRequired().HasMaxLength(32);
-        builder.HasIndex(article => new { article.CreatedAt, article.Id });
-        builder.HasIndex(article => new { article.Type, article.CreatedAt, article.Id });
+        builder.Property(article => article.OriginUrl).HasMaxLength(2048);
+        builder.HasIndex(article => article.OriginUrl).IsUnique();
+        builder.Property(article => article.Type).HasConversion<string>().HasMaxLength(32);
     }
 }

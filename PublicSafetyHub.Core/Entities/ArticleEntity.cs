@@ -9,5 +9,7 @@ public class ArticleEntity : ExtendedBaseEntity<int>
 
     public string Content { get; set; }
 
+    public string OriginUrl { get; set; }
+
     public ArticleType Type { get; set; }
 }

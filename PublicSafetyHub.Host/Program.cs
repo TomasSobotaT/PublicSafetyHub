@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddVersionedOpenApi();
 builder.Services.AddDatabase(builder.Configuration);
-builder.Services.AddDependencyInjectionRegistration();
+builder.Services.AddDependencyInjectionRegistration(builder.Configuration);
 builder.Services.AddAuthRegistration(builder.Configuration);
 
 var app = builder.Build();
