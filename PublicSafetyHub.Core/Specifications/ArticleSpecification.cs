@@ -13,6 +13,12 @@ public class ArticleSpecification : Specification<ArticleEntity>
 
     protected override Expression<Func<ArticleEntity, object>> IdSelector => article => article.Id;
 
+    protected override Expression<Func<ArticleEntity, object>> DefaultOrderBy => article => article.PublishedAt ?? article.CreatedAt;
+
+    protected override Expression<Func<ArticleEntity, object>> DefaultThenBy => IdSelector;
+
+    protected override bool DefaultSortDescending => true;
+
     protected override IReadOnlyDictionary<string, Expression<Func<ArticleEntity, object>>> SortColumns => AllowedSorts;
 
     private static readonly IReadOnlyDictionary<string, Expression<Func<ArticleEntity, object>>> AllowedSorts =
@@ -22,6 +28,7 @@ public class ArticleSpecification : Specification<ArticleEntity>
             [nameof(ArticleEntity.Title)] = article => article.Title,
             [nameof(ArticleEntity.Type)] = article => article.Type,
             [nameof(ArticleEntity.CreatedAt)] = article => article.CreatedAt,
+            [nameof(ArticleEntity.PublishedAt)] = article => article.PublishedAt,
             [nameof(ArticleEntity.UpdatedAt)] = article => article.UpdatedAt
         };
 

@@ -11,5 +11,7 @@ public class ArticleEntity : ExtendedBaseEntity<int>
 
     public string OriginUrl { get; set; }
 
+    public DateTime? PublishedAt { get; set; }
+
     public ArticleType Type { get; set; }
 }

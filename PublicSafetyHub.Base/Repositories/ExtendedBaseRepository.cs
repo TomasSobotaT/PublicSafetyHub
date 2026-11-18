@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Entities.Base;
-using PublicSafetyHub.Base.Time;
 
 namespace PublicSafetyHub.Base.Repositories;
 
@@ -10,14 +9,14 @@ public abstract class ExtendedBaseRepository<TEntity, T>(DbContext dbContext)
 {
     public override async Task AddAsync(TEntity entity)
     {
-        entity.CreatedAt = CzechTime.Now;
+        entity.CreatedAt = DateTime.UtcNow;
         entity.UpdatedAt = null;
         await base.AddAsync(entity);
     }
 
     public override void Update(TEntity entity)
     {
-        entity.UpdatedAt = CzechTime.Now;
+        entity.UpdatedAt = DateTime.UtcNow;
         base.Update(entity);
     }
 }

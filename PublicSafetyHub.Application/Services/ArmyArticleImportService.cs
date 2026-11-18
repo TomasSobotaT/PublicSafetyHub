@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -74,6 +75,7 @@ public class ArmyArticleImportService(
                 Title = article.Title,
                 Content = article.Description,
                 OriginUrl = article.OriginUrl,
+                PublishedAt = article.PublishedAt,
                 Type = ArticleType.Army
             });
 
@@ -126,12 +128,24 @@ public class ArmyArticleImportService(
                 {
                     Title = NormalizeText(itemXElement.Element("title")?.Value ?? ""),
                     Description = NormalizeText(description.DocumentNode.InnerText),
-                    OriginUrl = originUrl
+                    OriginUrl = originUrl,
+                    PublishedAt = ParsePublishedAt(itemXElement.Element("pubDate")?.Value)
                 });
             }
         }
 
         return articles;
+    }
+
+    private static DateTime? ParsePublishedAt(string value)
+    {
+        if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture,
+            DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal, out var publishedAt))
+        {
+            return null;
+        }
+
+        return publishedAt.UtcDateTime;
     }
 
     private static string NormalizeText(string value)

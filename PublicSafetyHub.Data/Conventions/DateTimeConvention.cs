@@ -14,7 +14,7 @@ public class DateTimeConvention : IPropertyAddedConvention
 
         if (propertyType == typeof(DateTime) && typeof(IBaseEntity).IsAssignableFrom(property.DeclaringType.ClrType))
         {
-            propertyBuilder.HasColumnType("timestamp without time zone");
+            propertyBuilder.HasColumnType("timestamp with time zone");
         }
     }
 }
