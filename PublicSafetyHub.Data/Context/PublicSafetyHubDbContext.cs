@@ -20,6 +20,7 @@ public class PublicSafetyHubDbContext(DbContextOptions<PublicSafetyHubDbContext>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.HasPostgresExtension("vector");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PublicSafetyHubDbContext).Assembly);
     }
 }

@@ -2,7 +2,7 @@ name: publicsafetyhub
 
 services:
   database:
-    image: postgres:18
+    image: pgvector/pgvector:pg18
     container_name: publicsafetyhub-db
     environment:
       POSTGRES_DB: PublicSafetyHub

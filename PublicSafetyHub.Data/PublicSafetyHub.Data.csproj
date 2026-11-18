@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.9.0" />
+    <PackageReference Include="Pgvector.EntityFrameworkCore" Version="0.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />

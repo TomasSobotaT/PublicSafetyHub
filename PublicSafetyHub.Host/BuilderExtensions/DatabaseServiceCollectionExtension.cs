@@ -14,7 +14,7 @@ public static class DatabaseServiceCollectionExtension
 
         services.AddDbContext<PublicSafetyHubDbContext>(options =>
         {
-            options.UseNpgsql(connectionString);
+            options.UseNpgsql(connectionString, npgsql => npgsql.UseVector());
             options.UseOpenIddict();
         });
 

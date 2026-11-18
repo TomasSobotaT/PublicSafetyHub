@@ -5,6 +5,9 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Pgvector" Version="0.3.2" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\PublicSafetyHub.Base\PublicSafetyHub.Base.csproj" />
     <ProjectReference Include="..\PublicSafetyHub.Models\PublicSafetyHub.Models.csproj" />
   </ItemGroup>
