@@ -5,11 +5,12 @@ using PublicSafetyHub.Data.Context;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddVersionedOpenApi();
+builder.Services.AddOpenApiRegistration();
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddDependencyInjectionRegistration(builder.Configuration);
 builder.Services.AddHttpClientRegistration();
 builder.Services.AddAuthRegistration();
+builder.Services.AddAiRegistration();
 
 var app = builder.Build();
 

@@ -7,7 +7,7 @@ namespace PublicSafetyHub.Host.BuilderExtensions;
 
 public static class OpenApiServiceCollectionExtension
 {
-    public static IServiceCollection AddVersionedOpenApi(this IServiceCollection services)
+    public static IServiceCollection AddOpenApiRegistration(this IServiceCollection services)
     {
         services.AddApiVersioning(options =>
         {

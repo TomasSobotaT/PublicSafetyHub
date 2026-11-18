@@ -38,6 +38,7 @@ public static class DependencyInjectionExtension
         services.TryAddScoped<IHttpUserContext, HttpUserContext>();
         services.TryAddScoped<IAuthService, AuthService>();
         services.TryAddScoped<IArticleService, ArticleService>();
+        services.TryAddScoped<IArticleEmbeddingService, ArticleEmbeddingService>();
         services.TryAddScoped<IArmyArticleImportService, ArmyArticleImportService>();
         services.TryAddScoped<IPoliceArticleImportService, PoliceArticleImportService>();
         services.TryAddScoped<ITokenService, TokenService>();
@@ -66,6 +67,7 @@ public static class DependencyInjectionExtension
     {
         services.AddHostedService<AuthClientInitializer>();
         services.AddHostedService<ArticleImportJob>();
+        services.AddHostedService<ArticleEmbeddingJob>();
     }
 
     private static void RegisterConfigurations(this IServiceCollection services, IConfiguration configuration)
@@ -73,6 +75,8 @@ public static class DependencyInjectionExtension
         services.AddConfiguration<IArmyArticleImportOptions, ArmyArticleImportOptions>(configuration);
         services.AddConfiguration<IPoliceArticleImportOptions, PoliceArticleImportOptions>(configuration);
         services.AddConfiguration<IArticleImportOptions, ArticleImportOptions>(configuration);
+        services.AddConfiguration<IOpenAiOptions, OpenAiOptions>(configuration);
+        services.AddConfiguration<IArticleEmbeddingOptions, ArticleEmbeddingOptions>(configuration);
         services.AddConfiguration<IAuthOptions, AuthOptions>(configuration);
     }
 }
