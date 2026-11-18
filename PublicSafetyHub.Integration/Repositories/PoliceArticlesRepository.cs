@@ -20,25 +20,23 @@ public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient
             return [];
         }
 
-        response.EnsureSuccessStatusCode();
-        var document = new HtmlDocument();
-        document.LoadHtml(await response.Content.ReadAsStringAsync());
+        var document = await LoadDocumentAsync(response);
 
-        var main = document.DocumentNode.SelectSingleNode("//main[@id='main']");
-        var heading = main?.SelectSingleNode(".//h1");
+        var mainHtmlNode = document.DocumentNode.SelectSingleNode("//main[@id='main']");
+        var headingHtmlNode = mainHtmlNode?.SelectSingleNode(".//h1");
 
-        if (heading == null || TextHelper.NormalizeText(heading.InnerText) != "Zpravodajství")
+        if (headingHtmlNode is null || TextHelper.NormalizeText(headingHtmlNode.InnerText) != "Zpravodajství")
         {
             throw new InvalidDataException($"Police list page {pageNumber} has an unexpected structure.");
         }
 
-        var articleNodes = main.SelectNodes(".//h3/a[@href]");
+        var articleHtmlNodes = mainHtmlNode.SelectNodes(".//h3/a[@href]");
 
-        if (articleNodes == null || articleNodes.Count == 0)
+        if (articleHtmlNodes is null || articleHtmlNodes.Count == 0)
         {
-            var emptyList = main.SelectSingleNode(".//ul[contains(concat(' ', normalize-space(@class), ' '), ' flex-col ') and contains(concat(' ', normalize-space(@class), ' '), ' gap-8 ') and contains(concat(' ', normalize-space(@class), ' '), ' list-none ')]");
+            var emptyHtmlNodeList = mainHtmlNode.SelectSingleNode(".//ul[contains(concat(' ', normalize-space(@class), ' '), ' flex-col ') and contains(concat(' ', normalize-space(@class), ' '), ' gap-8 ') and contains(concat(' ', normalize-space(@class), ' '), ' list-none ')]");
 
-            if (emptyList == null || emptyList.SelectSingleNode("./li") != null)
+            if (emptyHtmlNodeList is null || emptyHtmlNodeList.SelectSingleNode("./li") is not null)
             {
                 throw new InvalidDataException($"Police list page {pageNumber} contains neither article links nor a recognized empty list.");
             }
@@ -47,14 +45,13 @@ public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient
         }
 
         var baseUrl = new Uri(options.BaseUrl);
-        var links = new List<PoliceArticleLink>();
+        var policeArticleLinks = new List<PoliceArticleLink>();
 
-        foreach (var node in articleNodes)
+        foreach (var node in articleHtmlNodes)
         {
-            var card = node.SelectSingleNode("ancestor::li[1]");
-            var calendar = card?.SelectSingleNode(".//*[name()='svg' and contains(@class, 'lucide-calendar')]/..");
-            DateOnly? publishedOn = DateOnly.TryParse(TextHelper.NormalizeText(calendar?.InnerText ?? ""),
-                CultureInfo.GetCultureInfo("cs-CZ"), DateTimeStyles.AllowWhiteSpaces, out var date) ? date : null;
+            var cardHtmlNode = node.SelectSingleNode("ancestor::li[1]");
+            var calendarHtmlNode = cardHtmlNode?.SelectSingleNode(".//*[name()='svg' and contains(@class, 'lucide-calendar')]/..");
+            DateOnly? publishedOn = DateOnly.TryParse(TextHelper.NormalizeText(calendarHtmlNode?.InnerText ?? ""), CultureInfo.GetCultureInfo("cs-CZ"), DateTimeStyles.AllowWhiteSpaces, out var date) ? date : null;
 
             var href = WebUtility.HtmlDecode(node.GetAttributeValue("href", "")).Trim();
 
@@ -63,69 +60,75 @@ public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient
                 throw new InvalidDataException($"Police list page {pageNumber} contains an invalid article URL.");
             }
 
-            links.Add(new PoliceArticleLink
+            policeArticleLinks.Add(new PoliceArticleLink
             {
                 OriginUrl = new UriBuilder(url) { Fragment = "" }.Uri.AbsoluteUri,
                 PublishedOn = publishedOn
             });
         }
 
-        return links;
+        return policeArticleLinks;
     }
 
     public async Task<PoliceArticle> GetArticleAsync(string originUrl)
     {
         using var response = await policeArticlesClient.GetArticleAsync(originUrl);
-        response.EnsureSuccessStatusCode();
 
-        var document = new HtmlDocument();
-        document.LoadHtml(await response.Content.ReadAsStringAsync());
+        var document = await LoadDocumentAsync(response);
 
-        var title = document.DocumentNode.SelectSingleNode("//main[@id='main']//h1");
-        var content = document.DocumentNode.SelectSingleNode("//main[@id='main']//section[@id='article-chapter-content']");
+        var titleHtmlNode = document.DocumentNode.SelectSingleNode("//main[@id='main']//h1");
+        var contentHtmlNode = document.DocumentNode.SelectSingleNode("//main[@id='main']//section[@id='article-chapter-content']");
 
-        if (title == null || content == null)
+        if (titleHtmlNode is null || contentHtmlNode is null)
         {
             throw new InvalidDataException($"Police article {originUrl} has an unexpected structure.");
         }
 
-        var perex = content.SelectSingleNode("preceding-sibling::p[1]");
+        var perex = contentHtmlNode.SelectSingleNode("preceding-sibling::p[1]");
         var publishedValue = document.DocumentNode.SelectSingleNode("//meta[@property='article:published_time']")?.GetAttributeValue("content", "");
-        DateTime? publishedAt = DateTimeOffset.TryParse(publishedValue, CultureInfo.InvariantCulture,
-            DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal, out var published) ? published.UtcDateTime : null;
+        DateTime? publishedAt = DateTimeOffset.TryParse(publishedValue, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal, out var published) ? published.UtcDateTime : null;
 
         var paragraphs = new List<string>();
 
-        if (perex != null)
+        if (perex is not null)
         {
             paragraphs.Add(GetPlainText(perex));
         }
 
-        paragraphs.Add(GetPlainText(content));
+        paragraphs.Add(GetPlainText(contentHtmlNode));
 
         return new PoliceArticle
         {
-            Title = TextHelper.NormalizeText(title.InnerText),
+            Title = TextHelper.NormalizeText(titleHtmlNode.InnerText),
             Content = string.Join("\n\n", paragraphs.Where(paragraph => !string.IsNullOrWhiteSpace(paragraph))),
             OriginUrl = originUrl,
             PublishedAt = publishedAt
         };
     }
 
+    private static async Task<HtmlDocument> LoadDocumentAsync(HttpResponseMessage response)
+    {
+        response.EnsureSuccessStatusCode();
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var document = new HtmlDocument();
+        document.LoadHtml(responseContent);
+        return document;
+    }
+
     private static string GetPlainText(HtmlNode node)
     {
-        var clone = node.CloneNode(true);
-        var excludedNodes = clone.SelectNodes(".//script | .//style | .//noscript");
+        var cloneHtmlNode = node.CloneNode(true);
+        var excludedNodes = cloneHtmlNode.SelectNodes(".//script | .//style | .//noscript");
 
-        if (excludedNodes != null)
+        if (excludedNodes is not null)
         {
-            foreach (var excluded in excludedNodes)
+            foreach (var excludedNode in excludedNodes)
             {
-                excluded.Remove();
+                excludedNode.Remove();
             }
         }
 
-        var textNodes = clone.SelectNodes(".//text()");
-        return textNodes == null ? "" : TextHelper.NormalizeText(string.Join(" ", textNodes.Select(text => text.InnerText)));
+        var textNodes = cloneHtmlNode.SelectNodes(".//text()");
+        return textNodes is null ? "" : TextHelper.NormalizeText(string.Join(" ", textNodes.Select(text => text.InnerText)));
     }
 }

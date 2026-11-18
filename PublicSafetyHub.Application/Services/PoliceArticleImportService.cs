@@ -25,8 +25,9 @@ public class PoliceArticleImportService(
         var utcNow = DateTime.UtcNow;
         var latestPublishedAt = await articleRepository.GetLatestPublishedAtAsync(ArticleType.Police);
         var cutoff = latestPublishedAt ?? utcNow.AddDays(-2);
-        var links = await GetArticleLinksAsync(cutoff, cancellationToken);
-        var originUrls = links.Select(link => link.OriginUrl).ToArray();
+        var policeArticleLinks = await GetArticleLinksAsync(cutoff, cancellationToken);
+
+        var originUrls = policeArticleLinks.Select(link => link.OriginUrl).ToArray();
         var existingOriginUrls = await articleRepository.GetExistingOriginUrlsAsync(originUrls);
         var knownOriginUrls = existingOriginUrls.ToHashSet(StringComparer.Ordinal);
         var imported = 0;
@@ -34,17 +35,17 @@ public class PoliceArticleImportService(
         var invalid = 0;
         var outsidePeriod = 0;
 
-        foreach (var link in links)
+        foreach (var policeArticleLink in policeArticleLinks)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!knownOriginUrls.Add(link.OriginUrl))
+            if (!knownOriginUrls.Add(policeArticleLink.OriginUrl))
             {
                 existing++;
                 continue;
             }
 
-            var article = await policeArticlesRepository.GetArticleAsync(link.OriginUrl);
+            var article = await policeArticlesRepository.GetArticleAsync(policeArticleLink.OriginUrl);
             var validationResult = await policeArticleValidator.ValidateAsync(article);
 
             if (!validationResult.IsValid)
@@ -80,19 +81,18 @@ public class PoliceArticleImportService(
             await unitOfWork.SaveChangesAsync();
         }
 
-        logger.LogInformation("Police article import finished since {Cutoff}: {Imported} imported, {Existing} existing, {Invalid} invalid, {OutsidePeriod} outside period.",
-            cutoff, imported, existing, invalid, outsidePeriod);
+        logger.LogInformation("Police article import finished since {Cutoff}: {Imported} imported, {Existing} existing, {Invalid} invalid, {OutsidePeriod} outside period.", cutoff, imported, existing, invalid, outsidePeriod);
     }
 
     private async Task<IReadOnlyList<PoliceArticleLink>> GetArticleLinksAsync(DateTime cutoff, CancellationToken cancellationToken)
     {
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
         var cutoffDate = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(cutoff, timeZone));
-        var links = new List<PoliceArticleLink>();
         var knownUrls = new HashSet<string>(StringComparer.Ordinal);
         var knownPages = new HashSet<string>(StringComparer.Ordinal);
+        var policeArticleLinks = new List<PoliceArticleLink>();
 
-        for (var pageNumber = 1; ; pageNumber = checked(pageNumber + 1))
+        for (var pageNumber = 1; ; pageNumber = pageNumber + 1)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var pageLinks = await policeArticlesRepository.GetListAsync(pageNumber);
@@ -115,15 +115,15 @@ public class PoliceArticleImportService(
                 break;
             }
 
-            foreach (var link in pageLinks)
+            foreach (var pageLink in pageLinks)
             {
-                if (knownUrls.Add(link.OriginUrl))
+                if (knownUrls.Add(pageLink.OriginUrl))
                 {
-                    links.Add(link);
+                    policeArticleLinks.Add(pageLink);
                 }
             }
         }
 
-        return links;
+        return policeArticleLinks;
     }
 }

@@ -125,7 +125,7 @@ public class AuthService(
         var sessionId = httpUserContext.GetSessionId();
         var userId = httpUserContext.GetUserId();
 
-        if (!userId.HasValue || sessionId == null)
+        if (!userId.HasValue || sessionId is null)
         {
             return ResultHelper.Unauthorized("Invalid credentials or session.");
         }
