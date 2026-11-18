@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using HtmlAgilityPack;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.UnitOfWork;
@@ -20,6 +21,7 @@ public class ArmyArticleImportService(
     IArmyArticleImportOptions options,
     IArticleRepository articleRepository,
     IUnitOfWork unitOfWork,
+    IValidator<ArmyArticle> armyArticleValidator,
     ILogger<ArmyArticleImportService> logger)
     : IArmyArticleImportService
 {
@@ -28,24 +30,54 @@ public class ArmyArticleImportService(
         cancellationToken.ThrowIfCancellationRequested();
 
         var imported = 0;
-        var skipped = 0;
+        var existing = 0;
+        var invalid = 0;
 
         var articles = await GetArticlesAsync();
+        var validArticles = new List<ArmyArticle>();
 
         foreach (var article in articles)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var articleImported = await ImportAsync(article);
+            var validationResult = await armyArticleValidator.ValidateAsync(article);
 
-            if (articleImported)
+            if (!validationResult.IsValid)
             {
-                imported++;
+                invalid++;
+                var reasons = string.Join("; ", validationResult.Errors.Select(error => error.ErrorMessage));
+                logger.LogWarning("Skipping invalid Army article {OriginUrl}: {Reasons}", article.OriginUrl, reasons);
+                continue;
             }
-            else
+
+            validArticles.Add(article);
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var originUrls = validArticles.Select(article => article.OriginUrl).ToArray();
+        var existingOriginUrls = await articleRepository.GetExistingOriginUrlsAsync(originUrls);
+        var knownOriginUrls = existingOriginUrls.ToHashSet(StringComparer.Ordinal);
+
+        foreach (var article in validArticles)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!knownOriginUrls.Add(article.OriginUrl))
             {
-                skipped++;
+                existing++;
+                continue;
             }
+
+            await articleRepository.AddAsync(new ArticleEntity
+            {
+                Title = article.Title,
+                Content = article.Description,
+                OriginUrl = article.OriginUrl,
+                Type = ArticleType.Army
+            });
+
+            imported++;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -55,30 +87,7 @@ public class ArmyArticleImportService(
             await unitOfWork.SaveChangesAsync();
         }
 
-        logger.LogInformation("Army article import finished: {Imported} imported, {Skipped} existing.", imported, skipped);
-    }
-
-    public async Task<bool> ImportAsync(ArmyArticle article)
-    {
-        ArgumentNullException.ThrowIfNull(article);
-
-        var originUrl = new Uri(article.OriginUrl, UriKind.Absolute);
-        var articleUrlExists = await articleRepository.ExistsByOriginUrlAsync(originUrl.AbsoluteUri);
-
-        if (articleUrlExists)
-        {
-            return false;
-        }
-
-        await articleRepository.AddAsync(new ArticleEntity
-        {
-            Title = article.Title,
-            Content = article.Description,
-            OriginUrl = originUrl.AbsoluteUri,
-            Type = ArticleType.Army
-        });
-
-        return true;
+        logger.LogInformation("Army article import finished: {Imported} imported, {Existing} existing, {Invalid} invalid.", imported, existing, invalid);
     }
 
     public async Task<IReadOnlyList<ArmyArticle>> GetArticlesAsync()
@@ -100,14 +109,14 @@ public class ArmyArticleImportService(
         {
             var linkXElementValue = itemXElement.Element("link")?.Value.Trim();
 
-            if (string.IsNullOrWhiteSpace(linkXElementValue) || !Uri.TryCreate(baseUrl, linkXElementValue, out var url))
+            var originUrl = linkXElementValue;
+
+            if (!string.IsNullOrWhiteSpace(linkXElementValue) && Uri.TryCreate(baseUrl, linkXElementValue, out var url))
             {
-                continue;
+                originUrl = new UriBuilder(url) { Fragment = "" }.Uri.AbsoluteUri;
             }
 
-            var canonicalUrl = new UriBuilder(url) { Fragment = "" }.Uri;
-
-            if (uniqueArticlesUrl.Add(canonicalUrl.AbsoluteUri))
+            if (string.IsNullOrWhiteSpace(originUrl) || uniqueArticlesUrl.Add(originUrl))
             {
                 var description = new HtmlDocument();
 
@@ -117,7 +126,7 @@ public class ArmyArticleImportService(
                 {
                     Title = NormalizeText(itemXElement.Element("title")?.Value ?? ""),
                     Description = NormalizeText(description.DocumentNode.InnerText),
-                    OriginUrl = canonicalUrl.AbsoluteUri
+                    OriginUrl = originUrl
                 });
             }
         }

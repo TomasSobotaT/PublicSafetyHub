@@ -1,4 +1,5 @@
 using AutoMapper;
+using FluentValidation;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
@@ -9,7 +10,7 @@ using PublicSafetyHub.Models.Articles;
 
 namespace PublicSafetyHub.Application.Services;
 
-public class ArticleService(IArticleRepository articleRepository, IMapper mapper) : IArticleService
+public class ArticleService(IArticleRepository articleRepository, IMapper mapper, IValidator<PaginationRequest> paginationRequestValidator) : IArticleService
 {
     public async Task<ApplicationResult<Article>> GetArticleByIdAsync(int id)
     {
@@ -25,6 +26,13 @@ public class ArticleService(IArticleRepository articleRepository, IMapper mapper
 
     public async Task<ApplicationResult<PagedResult<Article>>> GetArticlesAsync(FilteredRequest<ArticleFilter> filteredRequest)
     {
+        var validationResult = await paginationRequestValidator.ValidateAsync(filteredRequest);
+
+        if (!validationResult.IsValid)
+        {
+            return ResultHelper.Validation(validationResult.Errors[0].ErrorMessage);
+        }
+
         var specification = filteredRequest.Filter is null ? new ArticleSpecification() : mapper.Map<ArticleSpecification>(filteredRequest.Filter);
         var articles = await articleRepository.GetPagedAsync(specification, filteredRequest);
 

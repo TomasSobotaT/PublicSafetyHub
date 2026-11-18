@@ -7,6 +7,4 @@ public interface IArmyArticleImportService
     Task ImportFeedAsync(CancellationToken cancellationToken);
 
     Task<IReadOnlyList<ArmyArticle>> GetArticlesAsync();
-
-    Task<bool> ImportAsync(ArmyArticle article);
 }
