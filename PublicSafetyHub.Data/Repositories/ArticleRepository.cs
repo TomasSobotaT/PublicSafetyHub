@@ -3,7 +3,7 @@ using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Core.Enums;
 using PublicSafetyHub.Data.Context;
-using PublicSafetyHub.Data.Repositories.Interfaces;
+using PublicSafetyHub.Core.Repositories;
 
 namespace PublicSafetyHub.Data.Repositories;
 

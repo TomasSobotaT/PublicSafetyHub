@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Core.Entities;
 
-namespace PublicSafetyHub.Data.Repositories.Interfaces;
+namespace PublicSafetyHub.Core.Repositories;
 
 public interface IUserRepository : IExtendedBaseRepository<UserEntity, int>
 {

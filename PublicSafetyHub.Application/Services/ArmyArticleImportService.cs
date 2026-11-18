@@ -11,7 +11,7 @@ using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Core.Enums;
-using PublicSafetyHub.Data.Repositories.Interfaces;
+using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Integration.Army;
 using PublicSafetyHub.Models.Articles;
 

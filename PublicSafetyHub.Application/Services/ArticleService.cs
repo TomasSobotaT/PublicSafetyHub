@@ -5,7 +5,7 @@ using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Core.Specifications;
-using PublicSafetyHub.Data.Repositories.Interfaces;
+using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Models.Articles;
 
 namespace PublicSafetyHub.Application.Services;

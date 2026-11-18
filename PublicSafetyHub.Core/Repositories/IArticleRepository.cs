@@ -2,7 +2,7 @@ using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Core.Enums;
 
-namespace PublicSafetyHub.Data.Repositories.Interfaces;
+namespace PublicSafetyHub.Core.Repositories;
 
 public interface IArticleRepository : IExtendedBaseRepository<ArticleEntity, int>
 {

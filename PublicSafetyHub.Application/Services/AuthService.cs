@@ -10,7 +10,7 @@ using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Base.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
-using PublicSafetyHub.Data.Repositories.Interfaces;
+using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Models.Auth.Requests;
 using PublicSafetyHub.Models.Auth.Responses;
 using static OpenIddict.Abstractions.OpenIddictConstants;

@@ -11,7 +11,7 @@ using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Base.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Data.Repositories;
-using PublicSafetyHub.Data.Repositories.Interfaces;
+using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Data.UnitOfWork;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
