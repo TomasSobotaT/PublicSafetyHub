@@ -17,6 +17,7 @@ if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Develop
 {
     await using var scope = app.Services.CreateAsyncScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<PublicSafetyHubDbContext>();
+    await dbContext.Database.EnsureDeletedAsync();
     await dbContext.Database.EnsureCreatedAsync();
 }
 
