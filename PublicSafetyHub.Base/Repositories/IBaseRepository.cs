@@ -17,5 +17,6 @@ public interface IBaseRepository<TEntity, T> where TEntity : class, IBaseEntity<
 
     Task<List<TEntity>> GetAllAsync(ISpecification<TEntity> specification = null);
 
-    Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest);
+    Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest,
+        bool asNoTracking = true, bool ignoreQueryFilters = false);
 }

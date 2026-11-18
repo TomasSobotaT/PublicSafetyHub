@@ -39,13 +39,21 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
         return await query.ToListAsync();
     }
 
-    public virtual async Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest)
+    public virtual async Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest, bool asNoTracking = true, bool ignoreQueryFilters = false)
     {
         ArgumentNullException.ThrowIfNull(specification);
         ArgumentNullException.ThrowIfNull(paginationRequest);
         specification.ApplyPagination(paginationRequest);
 
-        var query = GetQueryable().AsNoTracking().OrderBy(entity => entity.Id);
+        var query = GetQueryable();
+        query = asNoTracking ? query.AsNoTracking() : query.AsTracking();
+
+        if (ignoreQueryFilters)
+        {
+            query = query.IgnoreQueryFilters();
+        }
+
+        query = query.OrderBy(entity => entity.Id);
         var filteredQuery = SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true);
         var totalCount = await filteredQuery.CountAsync();
         var pagedQuery = ApplySpecification(query, specification);
