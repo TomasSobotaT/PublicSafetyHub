@@ -9,4 +9,6 @@ public interface IArticleRepository : IExtendedBaseRepository<ArticleEntity, int
     Task<List<string>> GetExistingOriginUrlsAsync(IReadOnlyCollection<string> originUrls);
 
     Task<DateTime?> GetLatestPublishedAtAsync(ArticleType type);
+
+    Task<List<ArticleEntity>> GetArtíclesWithoutEmbeddingAsync(int afterId, int count);
 }

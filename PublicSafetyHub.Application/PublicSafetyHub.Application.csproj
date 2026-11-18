@@ -9,6 +9,7 @@
     <PackageReference Include="FluentValidation" Version="12.2.0" />
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <ProjectReference Include="..\PublicSafetyHub.Base\PublicSafetyHub.Base.csproj" />
+    <ProjectReference Include="..\PublicSafetyHub.AI\PublicSafetyHub.AI.csproj" />
     <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />
     <ProjectReference Include="..\PublicSafetyHub.Models\PublicSafetyHub.Models.csproj" />
   </ItemGroup>

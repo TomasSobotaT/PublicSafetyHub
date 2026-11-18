@@ -5,6 +5,11 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.28.0" />
+    <PackageReference Include="Microsoft.ML.Tokenizers" Version="3.0.0" />
+    <PackageReference Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" Version="3.0.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />
   </ItemGroup>
 </Project>

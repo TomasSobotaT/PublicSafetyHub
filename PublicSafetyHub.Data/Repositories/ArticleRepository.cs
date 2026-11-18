@@ -9,14 +9,21 @@ namespace PublicSafetyHub.Data.Repositories;
 
 public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBaseRepository<ArticleEntity, int>(dbContext), IArticleRepository
 {
+    public Task<List<ArticleEntity>> GetArtíclesWithoutEmbeddingAsync(int afterId, int count)
+    {
+        return GetQueryable()
+            .Where(article => article.Id > afterId && article.Embedding == null)
+            .OrderBy(article => article.Id)
+            .Take(count)
+            .ToListAsync();
+    }
+
     public Task<DateTime?> GetLatestPublishedAtAsync(ArticleType type)
     {
-        var utcNow = DateTime.UtcNow;
-
         return GetQueryable()
             .AsNoTracking()
             .IgnoreQueryFilters()
-            .Where(article => article.Type == type && article.PublishedAt <= utcNow)
+            .Where(article => article.Type == type && article.PublishedAt <= DateTime.UtcNow)
             .MaxAsync(article => article.PublishedAt);
     }
 
