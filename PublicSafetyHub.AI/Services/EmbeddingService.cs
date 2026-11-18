@@ -4,13 +4,11 @@ using PublicSafetyHub.AI.Services.Interfaces;
 
 namespace PublicSafetyHub.AI.Services;
 
-public class EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> generator) : IEmbeddingService
+public class EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator, Tokenizer tokenizer) : IEmbeddingService
 {
     public const int Dimensions = 1536;
     public const int MaxInputTokens = 8191;
     public const int MaxBatchSize = 32;
-
-    private static readonly Tokenizer tokenizer = TiktokenTokenizer.CreateForModel("text-embedding-3-small");
 
     public int CountTokens(string text)
     {
@@ -18,49 +16,40 @@ public class EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> gene
         return tokenizer.CountTokens(text);
     }
 
-    public async Task<IReadOnlyList<ReadOnlyMemory<float>>> GenerateAsync(IReadOnlyList<string> texts)
+    public async Task<IReadOnlyDictionary<int, float[]>> GenerateAsync(IReadOnlyDictionary<int, string> textToEmbeddingDictionary)
     {
-        ArgumentNullException.ThrowIfNull(texts);
+        ArgumentNullException.ThrowIfNull(textToEmbeddingDictionary);
 
-        if (texts.Count == 0)
+        if (textToEmbeddingDictionary.Count == 0)
         {
-            return [];
+            return new Dictionary<int, float[]>();
         }
 
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(texts.Count, MaxBatchSize);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(textToEmbeddingDictionary.Count, MaxBatchSize);
 
-        foreach (var text in texts)
+        var inputKeyValuePairs = textToEmbeddingDictionary.ToArray();
+        var uniqueTexts = inputKeyValuePairs.Select(input => input.Value).Distinct(StringComparer.Ordinal).ToArray();
+
+        var embeddings = await embeddingGenerator.GenerateAndZipAsync(uniqueTexts, new EmbeddingGenerationOptions { Dimensions = Dimensions });
+        var vectorsByTextDictionary = new Dictionary<string, float[]>(StringComparer.Ordinal);
+
+        foreach (var (text, embedding) in embeddings)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(text);
+            var vector = embedding.Vector.ToArray();
 
-            if (CountTokens(text) > MaxInputTokens)
-            {
-                throw new ArgumentException("Embedding input exceeds the token limit.", nameof(texts));
-            }
-        }
-
-        // Each input is a separate article, not a concatenation of the whole batch.
-        var embeddings = await generator.GenerateAsync(texts, new EmbeddingGenerationOptions { Dimensions = Dimensions });
-
-        if (embeddings.Count != texts.Count)
-        {
-            throw new InvalidOperationException("The embedding provider returned an unexpected number of vectors.");
-        }
-
-        var vectors = new List<ReadOnlyMemory<float>>(embeddings.Count);
-
-        foreach (var embedding in embeddings)
-        {
-            var vector = embedding.Vector;
-
-            if (vector.Length != Dimensions || vector.ToArray().Any(value => !float.IsFinite(value)))
+            if (IsInvalidVector(vector))
             {
                 throw new InvalidOperationException("The embedding provider returned an invalid vector.");
             }
 
-            vectors.Add(vector);
+            vectorsByTextDictionary.Add(text, vector);
         }
 
-        return vectors;
+        return inputKeyValuePairs.ToDictionary(input => input.Key, input => vectorsByTextDictionary[input.Value]);
+    }
+
+    private static bool IsInvalidVector(float[] vector)
+    {
+        return vector.Length != Dimensions || vector.Any(value => !float.IsFinite(value));
     }
 }

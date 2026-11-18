@@ -4,5 +4,5 @@ public interface IEmbeddingService
 {
     int CountTokens(string text);
 
-    Task<IReadOnlyList<ReadOnlyMemory<float>>> GenerateAsync(IReadOnlyList<string> texts);
+    Task<IReadOnlyDictionary<int, float[]>> GenerateAsync(IReadOnlyDictionary<int, string> textToEmbeddingDictionary);
 }

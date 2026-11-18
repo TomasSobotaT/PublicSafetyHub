@@ -18,11 +18,30 @@ public class ArticleEmbeddingService(
     ILogger<ArticleEmbeddingService> logger)
     : IArticleEmbeddingService
 {
-    public async Task<int?> GenerateBatchAsync(int afterId, CancellationToken cancellationToken)
+    public async Task GenerateMissingEmbeddingsAsync(CancellationToken cancellationToken)
+    {
+        var lastCheckedArticleId = 0;
+
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var lastArticleIdInBatch = await GenerateBatchAsync(lastCheckedArticleId, cancellationToken);
+
+            if (!lastArticleIdInBatch.HasValue)
+            {
+                return;
+            }
+
+            lastCheckedArticleId = lastArticleIdInBatch.Value;
+        }
+    }
+
+    private async Task<int?> GenerateBatchAsync(int lastCheckedArticleId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var articles = await articleRepository.GetArtíclesWithoutEmbeddingAsync(afterId, options.BatchSize);
+        var articles = await articleRepository.GetArtíclesWithoutEmbeddingAsync(lastCheckedArticleId, options.BatchSize);
 
         if (articles.Count == 0)
         {
@@ -30,7 +49,7 @@ public class ArticleEmbeddingService(
         }
 
         var validArticles = new List<ArticleEntity>();
-        var texts = new List<string>();
+        var textToEmbeddingDictionary = new Dictionary<int, string>();
 
         foreach (var article in articles)
         {
@@ -42,41 +61,38 @@ public class ArticleEmbeddingService(
                 continue;
             }
 
-            var text = $"Title: {article.Title.Trim()}\n\n{article.Content.Trim()}";
-            var tokenCount = embeddingService.CountTokens(text);
+            var textToEmbedding = $"Title: {article.Title.Trim()}\n\n{article.Content.Trim()}";
+            var tokenCount = embeddingService.CountTokens(textToEmbedding);
 
             if (tokenCount > EmbeddingService.MaxInputTokens)
             {
-                logger.LogWarning("Skipping article {ArticleId} embedding: {TokenCount} tokens exceed {Limit}; the text was not truncated.",
-                    article.Id, tokenCount, EmbeddingService.MaxInputTokens);
+                logger.LogWarning("Skipping article {ArticleId} embedding: {TokenCount} tokens exceed {Limit}; the text was not truncated.", article.Id, tokenCount, EmbeddingService.MaxInputTokens);
                 continue;
             }
 
             validArticles.Add(article);
-            texts.Add(text);
+            textToEmbeddingDictionary.Add(article.Id, textToEmbedding);
         }
 
-        if (texts.Count > 0)
+        if (textToEmbeddingDictionary.Count > 0)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var vectors = await embeddingService.GenerateAsync(texts);
+            var vectorDictionary = await embeddingService.GenerateAsync(textToEmbeddingDictionary);
             cancellationToken.ThrowIfCancellationRequested();
 
-            for (var index = 0; index < validArticles.Count; index++)
+            foreach (var article in validArticles)
             {
-                var article = validArticles[index];
-                article.Embedding = new Vector(vectors[index].ToArray());
+                article.Embedding = new Vector(vectorDictionary[article.Id]);
                 articleRepository.Update(article);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
+
             await unitOfWork.SaveChangesAsync();
         }
 
-        logger.LogInformation("Article embedding batch finished: {Generated} generated, {Skipped} skipped, last ID {LastId}.",
-            texts.Count, articles.Count - texts.Count, articles[^1].Id);
+        logger.LogInformation("Article embedding batch finished: {Generated} generated, {Skipped} skipped, last ID {LastId}.", textToEmbeddingDictionary.Count, articles.Count - textToEmbeddingDictionary.Count, articles.Last().Id);
 
-        // Advance even if the whole page is invalid, so later articles are still processed.
-        return articles[^1].Id;
+        return articles.Last().Id;
     }
 }

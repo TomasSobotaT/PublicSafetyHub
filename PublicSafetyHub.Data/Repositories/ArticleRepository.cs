@@ -9,10 +9,10 @@ namespace PublicSafetyHub.Data.Repositories;
 
 public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBaseRepository<ArticleEntity, int>(dbContext), IArticleRepository
 {
-    public Task<List<ArticleEntity>> GetArtíclesWithoutEmbeddingAsync(int afterId, int count)
+    public Task<List<ArticleEntity>> GetArtíclesWithoutEmbeddingAsync(int lastCheckedArticleId, int count)
     {
         return GetQueryable()
-            .Where(article => article.Id > afterId && article.Embedding == null)
+            .Where(article => article.Id > lastCheckedArticleId && article.Embedding == null)
             .OrderBy(article => article.Id)
             .Take(count)
             .ToListAsync();

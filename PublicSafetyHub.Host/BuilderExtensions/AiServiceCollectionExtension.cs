@@ -1,5 +1,6 @@
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.ML.Tokenizers;
 using OpenAI;
 using PublicSafetyHub.AI.Services;
 using PublicSafetyHub.AI.Services.Interfaces;
@@ -20,6 +21,14 @@ public static class AiServiceCollectionExtension
             return new OpenAIClient(options.ApiKey)
                 .GetEmbeddingClient(options.EmbeddingModel)
                 .AsIEmbeddingGenerator();
+        });
+
+        services.TryAddSingleton<Tokenizer>(provider =>
+        {
+            var options = provider.GetRequiredService<IOpenAiOptions>();
+            ArgumentException.ThrowIfNullOrWhiteSpace(options.EmbeddingModel);
+
+            return TiktokenTokenizer.CreateForModel(options.EmbeddingModel);
         });
 
         services.TryAddScoped<IEmbeddingService, EmbeddingService>();

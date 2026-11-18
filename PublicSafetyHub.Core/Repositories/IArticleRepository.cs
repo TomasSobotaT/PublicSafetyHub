@@ -10,5 +10,5 @@ public interface IArticleRepository : IExtendedBaseRepository<ArticleEntity, int
 
     Task<DateTime?> GetLatestPublishedAtAsync(ArticleType type);
 
-    Task<List<ArticleEntity>> GetArtíclesWithoutEmbeddingAsync(int afterId, int count);
+    Task<List<ArticleEntity>> GetArtíclesWithoutEmbeddingAsync(int lastCheckedArticleId, int count);
 }

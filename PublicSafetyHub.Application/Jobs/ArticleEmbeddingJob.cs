@@ -20,7 +20,7 @@ public class ArticleEmbeddingJob(
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(openAiOptions.ApiKey) || openAiOptions.ApiKey == "REPLACE_WITH_OPENAI_API_KEY")
+        if (string.IsNullOrWhiteSpace(openAiOptions.ApiKey))
         {
             logger.LogWarning("Article embeddings are enabled but OpenAiOptions:ApiKey is missing or provisional. Configure user secrets or environment variables and restart the application.");
             return;
@@ -64,21 +64,9 @@ public class ArticleEmbeddingJob(
     {
         try
         {
-            var afterId = 0;
-
-            while (!stoppingToken.IsCancellationRequested)
-            {
-                await using var scope = scopeFactory.CreateAsyncScope();
-                var service = scope.ServiceProvider.GetRequiredService<IArticleEmbeddingService>();
-                var lastId = await service.GenerateBatchAsync(afterId, stoppingToken);
-
-                if (!lastId.HasValue)
-                {
-                    break;
-                }
-
-                afterId = lastId.Value;
-            }
+            await using var scope = scopeFactory.CreateAsyncScope();
+            var articleEmbeddingService = scope.ServiceProvider.GetRequiredService<IArticleEmbeddingService>();
+            await articleEmbeddingService.GenerateMissingEmbeddingsAsync(stoppingToken);
         }
         catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
         {
