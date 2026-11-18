@@ -62,7 +62,7 @@ public class ArticleEmbeddingService(
             }
 
             var textToEmbedding = $"Title: {article.Title.Trim()}\n\n{article.Content.Trim()}";
-            var tokenCount = embeddingService.CountTokens(textToEmbedding);
+            var tokenCount = embeddingService.GetTokenCount(textToEmbedding);
 
             if (tokenCount > EmbeddingService.MaxInputTokens)
             {

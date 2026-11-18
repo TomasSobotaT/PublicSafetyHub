@@ -10,7 +10,7 @@ public class EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> embe
     public const int MaxInputTokens = 8191;
     public const int MaxBatchSize = 32;
 
-    public int CountTokens(string text)
+    public int GetTokenCount(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
         return tokenizer.CountTokens(text);
