@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\PublicSafetyHub.Base\PublicSafetyHub.Base.csproj" />
+    <ProjectReference Include="..\PublicSafetyHub.Models\PublicSafetyHub.Models.csproj" />
   </ItemGroup>
 </Project>

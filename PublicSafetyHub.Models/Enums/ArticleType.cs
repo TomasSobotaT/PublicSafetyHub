@@ -1,4 +1,4 @@
-namespace PublicSafetyHub.Core.Enums;
+namespace PublicSafetyHub.Models.Enums;
 
 public enum ArticleType
 {

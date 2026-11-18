@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Core.Configurations;
-using PublicSafetyHub.Core.Enums;
+using PublicSafetyHub.Models.Enums;
 
 namespace PublicSafetyHub.Application.Jobs;
 

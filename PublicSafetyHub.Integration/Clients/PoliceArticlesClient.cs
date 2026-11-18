@@ -1,7 +1,7 @@
 using System.Globalization;
 using PublicSafetyHub.Core.Configurations;
 
-namespace PublicSafetyHub.Integration.Police;
+namespace PublicSafetyHub.Integration.Clients;
 
 public class PoliceArticlesClient(HttpClient httpClient, IPoliceArticleImportOptions options) : IPoliceArticlesClient
 {

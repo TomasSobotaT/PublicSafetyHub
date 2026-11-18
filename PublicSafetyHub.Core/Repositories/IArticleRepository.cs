@@ -1,6 +1,6 @@
 using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Core.Enums;
+using PublicSafetyHub.Models.Enums;
 
 namespace PublicSafetyHub.Core.Repositories;
 

@@ -1,6 +1,5 @@
 using PublicSafetyHub.Core.Configurations;
-using PublicSafetyHub.Integration.Army;
-using PublicSafetyHub.Integration.Police;
+using PublicSafetyHub.Integration.Clients;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 

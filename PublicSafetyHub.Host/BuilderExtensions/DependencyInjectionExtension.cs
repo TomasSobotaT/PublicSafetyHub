@@ -13,6 +13,8 @@ using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Data.Repositories;
 using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Data.UnitOfWork;
+using PublicSafetyHub.Core.Repositories.Integration;
+using PublicSafetyHub.Integration.Repositories;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 
@@ -45,6 +47,8 @@ public static class DependencyInjectionExtension
     {
         services.TryAddScoped<IUserRepository, UserRepository>();
         services.TryAddScoped<IArticleRepository, ArticleRepository>();
+        services.TryAddScoped<IArmyArticlesRepository, ArmyArticlesRepository>();
+        services.TryAddScoped<IPoliceArticlesRepository, PoliceArticlesRepository>();
         services.TryAddScoped<IUnitOfWork, UnitOfWork>();
     }
 

@@ -1,4 +1,4 @@
-namespace PublicSafetyHub.Integration.Police;
+namespace PublicSafetyHub.Integration.Clients;
 
 public interface IPoliceArticlesClient
 {

@@ -1,4 +1,4 @@
-namespace PublicSafetyHub.Integration.Army;
+namespace PublicSafetyHub.Integration.Clients;
 
 public interface IArmyArticlesClient
 {

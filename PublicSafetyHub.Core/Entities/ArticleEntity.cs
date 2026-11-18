@@ -1,5 +1,5 @@
 using PublicSafetyHub.Base.Entities.Base;
-using PublicSafetyHub.Core.Enums;
+using PublicSafetyHub.Models.Enums;
 
 namespace PublicSafetyHub.Core.Entities;
 

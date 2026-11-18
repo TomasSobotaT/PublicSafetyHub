@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Core.Enums;
+using PublicSafetyHub.Models.Enums;
 using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Core.Repositories;
 

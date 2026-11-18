@@ -1,6 +1,6 @@
 using PublicSafetyHub.Core.Configurations;
 
-namespace PublicSafetyHub.Integration.Army;
+namespace PublicSafetyHub.Integration.Clients;
 
 public class ArmyArticlesClient(HttpClient httpClient, IArmyArticleImportOptions options) : IArmyArticlesClient
 {
