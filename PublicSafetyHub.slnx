@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="PublicSafetyHub.AI/PublicSafetyHub.AI.csproj" />
   <Project Path="PublicSafetyHub.Application/PublicSafetyHub.Application.csproj" />
   <Project Path="PublicSafetyHub.Base/PublicSafetyHub.Base.csproj" />
   <Project Path="PublicSafetyHub.Blazor/PublicSafetyHub.Blazor.csproj" />

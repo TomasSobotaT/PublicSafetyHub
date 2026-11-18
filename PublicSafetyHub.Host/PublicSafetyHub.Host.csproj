@@ -15,6 +15,7 @@
     <PackageReference Include="Asp.Versioning.OpenApi" Version="10.2.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="11.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <ProjectReference Include="..\PublicSafetyHub.AI\PublicSafetyHub.AI.csproj" />
     <ProjectReference Include="..\PublicSafetyHub.Application\PublicSafetyHub.Application.csproj" />
     <ProjectReference Include="..\PublicSafetyHub.Integration\PublicSafetyHub.Integration.csproj" />
     <ProjectReference Include="..\PublicSafetyHub.Data\PublicSafetyHub.Data.csproj" />
