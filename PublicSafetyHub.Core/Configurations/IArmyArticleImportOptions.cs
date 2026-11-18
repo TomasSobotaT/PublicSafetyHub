@@ -7,10 +7,4 @@ public interface IArmyArticleImportOptions
     string BaseUrl { get; }
 
     bool Enabled { get; }
-
-    TimeOnly MorningTime { get; }
-
-    TimeOnly EveningTime { get; }
-
-    string TimeZoneId { get; }
 }

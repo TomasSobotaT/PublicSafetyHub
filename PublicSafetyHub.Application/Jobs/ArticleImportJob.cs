@@ -3,14 +3,20 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Core.Configurations;
+using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Application.Jobs;
 
-public class ArmyArticleImportJob(IServiceScopeFactory scopeFactory, IArmyArticleImportOptions options, ILogger<ArmyArticleImportJob> logger) : BackgroundService
+public class ArticleImportJob(
+    IServiceScopeFactory scopeFactory,
+    IArticleImportOptions options,
+    IArmyArticleImportOptions armyOptions,
+    IPoliceArticleImportOptions policeOptions,
+    ILogger<ArticleImportJob> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!options.Enabled)
+        if (!armyOptions.Enabled && !policeOptions.Enabled)
         {
             return;
         }
@@ -22,7 +28,7 @@ public class ArmyArticleImportJob(IServiceScopeFactory scopeFactory, IArmyArticl
             try
             {
                 var nextRun = GetNextRunUtc(DateTime.UtcNow, options, timeZone);
-                logger.LogInformation("Next Army article import at {NextRun} ({TimeZone}).", TimeZoneInfo.ConvertTimeFromUtc(nextRun, timeZone), options.TimeZoneId);
+                logger.LogInformation("Next article import at {NextRun} ({TimeZone}).", TimeZoneInfo.ConvertTimeFromUtc(nextRun, timeZone), options.TimeZoneId);
 
                 while (DateTime.UtcNow < nextRun)
                 {
@@ -34,10 +40,15 @@ public class ArmyArticleImportJob(IServiceScopeFactory scopeFactory, IArmyArticl
                     }
                 }
 
-                await using var scope = scopeFactory.CreateAsyncScope();
-                var armyArticleImportService = scope.ServiceProvider.GetRequiredService<IArmyArticleImportService>();
+                if (armyOptions.Enabled)
+                {
+                    await ImportAsync<IArmyArticleImportService>(ArticleType.Army, stoppingToken);
+                }
 
-                await armyArticleImportService.ImportFeedAsync(stoppingToken);
+                if (policeOptions.Enabled)
+                {
+                    await ImportAsync<IPoliceArticleImportService>(ArticleType.Police, stoppingToken);
+                }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -45,19 +56,34 @@ public class ArmyArticleImportJob(IServiceScopeFactory scopeFactory, IArmyArticl
             }
             catch (Exception exception)
             {
-                logger.LogError(exception, "Army feed import failed. It will be retried at the next scheduled run.");
+                logger.LogError(exception, "Article import scheduling failed. It will be retried in one minute.");
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
         }
     }
 
-    private static DateTime GetNextRunUtc(DateTime dateTimeUtcNow, IArmyArticleImportOptions settings, TimeZoneInfo timeZone)
+    private async Task ImportAsync<TService>(ArticleType source, CancellationToken stoppingToken) where TService : class, IArticleImportService
+    {
+        try
+        {
+            stoppingToken.ThrowIfCancellationRequested();
+            await using var scope = scopeFactory.CreateAsyncScope();
+            var service = scope.ServiceProvider.GetRequiredService<TService>();
+            await service.ImportAsync(stoppingToken);
+        }
+        catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
+        {
+            logger.LogError(exception, "{Source} article import failed. It will be retried at the next scheduled run.", source);
+        }
+    }
+
+    private static DateTime GetNextRunUtc(DateTime dateTimeUtcNow, IArticleImportOptions settings, TimeZoneInfo timeZone)
     {
         var localDate = TimeZoneInfo.ConvertTimeFromUtc(dateTimeUtcNow, timeZone).Date;
 
         foreach (var date in new[] { localDate, localDate.AddDays(1) })
         {
-            foreach (var time in new[] { settings.MorningTime, settings.EveningTime })
+            foreach (var time in new[] { settings.MorningTime, settings.EveningTime }.Distinct().Order())
             {
                 var localRun = DateTime.SpecifyKind(date.Add(time.ToTimeSpan()), DateTimeKind.Unspecified);
 
@@ -77,6 +103,6 @@ public class ArmyArticleImportJob(IServiceScopeFactory scopeFactory, IArmyArticl
             }
         }
 
-        throw new InvalidOperationException("No future Army import time was found.");
+        throw new InvalidOperationException("No future article import time was found.");
     }
 }

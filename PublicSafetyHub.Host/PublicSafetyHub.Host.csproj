@@ -6,7 +6,9 @@
     <UserSecretsId>PublicSafetyHub.Host-local</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="OpenIddict.AspNetCore" Version="7.9.0" />
+    <PackageReference Include="OpenIddict.Server.AspNetCore" Version="7.9.0" />
+    <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="7.9.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.2.0" />
     <PackageReference Include="Asp.Versioning.Mvc" Version="10.2.1" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.2.1" />
     <PackageReference Include="Asp.Versioning.OpenApi" Version="10.2.1" />

@@ -2,9 +2,7 @@ using PublicSafetyHub.Models.Articles;
 
 namespace PublicSafetyHub.Application.Services.Interfaces;
 
-public interface IArmyArticleImportService
+public interface IArmyArticleImportService : IArticleImportService
 {
-    Task ImportFeedAsync(CancellationToken cancellationToken);
-
     Task<IReadOnlyList<ArmyArticle>> GetArticlesAsync();
 }

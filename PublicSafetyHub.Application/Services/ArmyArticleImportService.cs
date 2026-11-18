@@ -26,7 +26,7 @@ public class ArmyArticleImportService(
     ILogger<ArmyArticleImportService> logger)
     : IArmyArticleImportService
 {
-    public async Task ImportFeedAsync(CancellationToken cancellationToken)
+    public async Task ImportAsync(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
