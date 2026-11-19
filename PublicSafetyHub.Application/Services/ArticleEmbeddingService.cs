@@ -18,15 +18,13 @@ public class ArticleEmbeddingService(
     ILogger<ArticleEmbeddingService> logger)
     : IArticleEmbeddingService
 {
-    public async Task GenerateMissingEmbeddingsAsync(CancellationToken cancellationToken)
+    public async Task GenerateMissingEmbeddingsAsync()
     {
         var lastCheckedArticleId = 0;
 
         while (true)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var lastArticleIdInBatch = await GenerateBatchAsync(lastCheckedArticleId, cancellationToken);
+            var lastArticleIdInBatch = await GenerateBatchAsync(lastCheckedArticleId);
 
             if (!lastArticleIdInBatch.HasValue)
             {
@@ -37,10 +35,8 @@ public class ArticleEmbeddingService(
         }
     }
 
-    private async Task<int?> GenerateBatchAsync(int lastCheckedArticleId, CancellationToken cancellationToken)
+    private async Task<int?> GenerateBatchAsync(int lastCheckedArticleId)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var articles = await articleRepository.GetArtíclesWithoutEmbeddingAsync(lastCheckedArticleId, options.BatchSize);
 
         if (articles.Count == 0)
@@ -53,8 +49,6 @@ public class ArticleEmbeddingService(
 
         foreach (var article in articles)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (string.IsNullOrWhiteSpace(article.Title) || string.IsNullOrWhiteSpace(article.Content))
             {
                 logger.LogWarning("Skipping article {ArticleId} embedding: title or content is empty.", article.Id);
@@ -76,17 +70,12 @@ public class ArticleEmbeddingService(
 
         if (textToEmbeddingDictionary.Count > 0)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var vectorDictionary = await embeddingService.GenerateAsync(textToEmbeddingDictionary);
-            cancellationToken.ThrowIfCancellationRequested();
-
             foreach (var article in validArticles)
             {
                 article.Embedding = new Vector(vectorDictionary[article.Id]);
                 articleRepository.Update(article);
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
 
             await unitOfWork.SaveChangesAsync();
         }

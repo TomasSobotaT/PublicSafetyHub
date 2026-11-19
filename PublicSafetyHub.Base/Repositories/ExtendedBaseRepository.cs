@@ -14,13 +14,6 @@ public abstract class ExtendedBaseRepository<TEntity, T>(DbContext dbContext)
         await base.AddAsync(entity);
     }
 
-    public override async Task AddAsync(TEntity entity, CancellationToken cancellationToken)
-    {
-        entity.CreatedAt = DateTime.UtcNow;
-        entity.UpdatedAt = null;
-        await base.AddAsync(entity, cancellationToken);
-    }
-
     public override void Update(TEntity entity)
     {
         entity.UpdatedAt = DateTime.UtcNow;

@@ -4,7 +4,7 @@ namespace PublicSafetyHub.Core.Repositories.Integration;
 
 public interface IFirefightersArticlesRepository
 {
-    Task<IReadOnlyList<string>> GetArticleLinksFromEmailNewslettersAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<string>> GetArticleLinksFromEmailNewslettersAsync();
 
-    Task<FirefightersArticle> GetArticleAsync(string originUrl, CancellationToken cancellationToken);
+    Task<FirefightersArticle> GetArticleAsync(string originUrl);
 }

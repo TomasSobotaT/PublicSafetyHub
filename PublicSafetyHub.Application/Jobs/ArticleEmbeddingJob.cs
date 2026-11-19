@@ -38,7 +38,12 @@ public class ArticleEmbeddingJob(
         {
             do
             {
-                await GenerateMissingEmbeddingsAsync(stoppingToken);
+                if (stoppingToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
+                await GenerateMissingEmbeddingsAsync();
                 logger.LogInformation("Article embedding check finished; configured interval is {IntervalHours} hours.", options.IntervalHours);
             }
             while (await timer.WaitForNextTickAsync(stoppingToken));
@@ -60,15 +65,15 @@ public class ArticleEmbeddingJob(
             || openAiOptions.EmbeddingModel.Length > 100;
     }
 
-    private async Task GenerateMissingEmbeddingsAsync(CancellationToken stoppingToken)
+    private async Task GenerateMissingEmbeddingsAsync()
     {
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();
             var articleEmbeddingService = scope.ServiceProvider.GetRequiredService<IArticleEmbeddingService>();
-            await articleEmbeddingService.GenerateMissingEmbeddingsAsync(stoppingToken);
+            await articleEmbeddingService.GenerateMissingEmbeddingsAsync();
         }
-        catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
+        catch (Exception exception)
         {
             logger.LogError(exception, "Article embedding run failed. Missing embeddings will be retried at the next scheduled check.");
         }

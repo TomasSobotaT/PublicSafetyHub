@@ -11,9 +11,9 @@ public static class FirefightersArticleHelper
     private static readonly string[] subscriptionLinks = ["nastavení odběru", "nastaveni odberu", "unsubscribe", "/subscription", "/newsletter", "odhlásit", "odhlasit"];
     private static readonly string[] contactPrefixes = ["HZS ", "Mobil:", "Telefon:", "Tel.:", "Tel:", "e-mail:", "email:"];
 
-    public static async Task<IReadOnlyList<string>> ParseEmlAsync(Stream stream, CancellationToken cancellationToken)
+    public static async Task<IReadOnlyList<string>> ParseEmlAsync(Stream stream)
     {
-        using var message = await MimeMessage.LoadAsync(stream, cancellationToken);
+        using var message = await MimeMessage.LoadAsync(stream);
         return Parse(message);
     }
 

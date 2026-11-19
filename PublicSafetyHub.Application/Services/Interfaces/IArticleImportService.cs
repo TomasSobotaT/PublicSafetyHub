@@ -2,5 +2,5 @@ namespace PublicSafetyHub.Application.Services.Interfaces;
 
 public interface IArticleImportService
 {
-    Task ImportAsync(CancellationToken cancellationToken);
+    Task ImportAsync();
 }

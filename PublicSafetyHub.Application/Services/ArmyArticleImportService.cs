@@ -18,10 +18,8 @@ public class ArmyArticleImportService(
     ILogger<ArmyArticleImportService> logger)
     : IArmyArticleImportService
 {
-    public async Task ImportAsync(CancellationToken cancellationToken)
+    public async Task ImportAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var imported = 0;
         var existing = 0;
         var invalid = 0;
@@ -31,8 +29,6 @@ public class ArmyArticleImportService(
 
         foreach (var article in articles)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var validationResult = await armyArticleValidator.ValidateAsync(article);
 
             if (!validationResult.IsValid)
@@ -46,16 +42,12 @@ public class ArmyArticleImportService(
             validArticles.Add(article);
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         var originUrls = validArticles.Select(article => article.OriginUrl).ToArray();
         var existingOriginUrls = await articleRepository.GetExistingOriginUrlsAsync(originUrls);
         var knownOriginUrls = existingOriginUrls.ToHashSet(StringComparer.Ordinal);
 
         foreach (var article in validArticles)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (!knownOriginUrls.Add(article.OriginUrl))
             {
                 existing++;
@@ -73,8 +65,6 @@ public class ArmyArticleImportService(
 
             imported++;
         }
-
-        cancellationToken.ThrowIfCancellationRequested();
 
         if (imported > 0)
         {

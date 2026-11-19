@@ -13,11 +13,6 @@ public class UnitOfWork(IPublicSafetyHubDbContext dbContext) : IUnitOfWork
         return dbContext.SaveChangesAsync();
     }
 
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken)
-    {
-        return dbContext.SaveChangesAsync(cancellationToken);
-    }
-
     public async Task BeginTransactionAsync()
     {
         if (transaction is not null)

@@ -18,7 +18,7 @@ public class FirefightersArticlesRepository(
 {
     private const int ImapTimeoutMilliseconds = 60_000;
 
-    public async Task<IReadOnlyList<string>> GetArticleLinksFromEmailNewslettersAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<string>> GetArticleLinksFromEmailNewslettersAsync()
     {
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
         var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone).Date;
@@ -29,26 +29,24 @@ public class FirefightersArticlesRepository(
         using var client = new ImapClient();
         client.Timeout = ImapTimeoutMilliseconds;
 
-        await client.ConnectAsync(options.ImapHost, options.ImapPort, SecureSocketOptions.SslOnConnect, cancellationToken);
-        await client.AuthenticateAsync(options.Username, options.Password, cancellationToken);
+        await client.ConnectAsync(options.ImapHost, options.ImapPort, SecureSocketOptions.SslOnConnect);
+        await client.AuthenticateAsync(options.Username, options.Password);
         var inbox = client.Inbox;
-        await inbox.OpenAsync(FolderAccess.ReadOnly, cancellationToken);
+        await inbox.OpenAsync(FolderAccess.ReadOnly);
 
         var searchQuery = SearchQuery.DeliveredAfter(firstDate.AddDays(-1))
             .And(SearchQuery.DeliveredBefore(endDate.AddDays(1)))
             .And(SearchQuery.FromContains(FirefightersArticleHelper.Sender))
             .And(SearchQuery.SubjectContains(FirefightersArticleHelper.Subject));
 
-        var newsletterMessageIds = await inbox.SearchAsync(searchQuery, cancellationToken);
+        var newsletterMessageIds = await inbox.SearchAsync(searchQuery);
 
         if (newsletterMessageIds.Count > 0)
         {
-            var newsletterMessageSummaries = await inbox.FetchAsync(newsletterMessageIds, MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate, cancellationToken);
+            var newsletterMessageSummaries = await inbox.FetchAsync(newsletterMessageIds, MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate);
 
             foreach (var messageSummary in newsletterMessageSummaries)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 if (!messageSummary.InternalDate.HasValue)
                 {
                     throw new InvalidDataException("Firefighters newsletter has no IMAP delivery date.");
@@ -58,23 +56,23 @@ public class FirefightersArticlesRepository(
 
                 if (deliveredOn >= firstDate && deliveredOn < endDate)
                 {
-                    using var message = await inbox.GetMessageAsync(messageSummary.UniqueId, cancellationToken);
+                    using var message = await inbox.GetMessageAsync(messageSummary.UniqueId);
                     links.UnionWith(FirefightersArticleHelper.Parse(message));
                 }
             }
         }
 
-        await client.DisconnectAsync(true, cancellationToken);
+        await client.DisconnectAsync(true);
         return [.. links];
     }
 
-    public async Task<FirefightersArticle> GetArticleAsync(string originUrl, CancellationToken cancellationToken)
+    public async Task<FirefightersArticle> GetArticleAsync(string originUrl)
     {
         var normalizedUrl = FirefightersArticleHelper.NormalizeUrl(originUrl) ?? throw new InvalidDataException("Firefighters article URL must use HTTPS on hzscr.gov.cz.");
 
-        using var response = await articlesClient.GetArticleAsync(normalizedUrl, cancellationToken);
+        using var response = await articlesClient.GetArticleAsync(normalizedUrl);
         response.EnsureSuccessStatusCode();
-        var html = await response.Content.ReadAsStringAsync(cancellationToken);
+        var html = await response.Content.ReadAsStringAsync();
         return ParseArticle(html, normalizedUrl);
     }
 

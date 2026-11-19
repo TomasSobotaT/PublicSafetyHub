@@ -18,14 +18,12 @@ public class PoliceArticleImportService(
     ILogger<PoliceArticleImportService> logger)
     : IPoliceArticleImportService
 {
-    public async Task ImportAsync(CancellationToken cancellationToken)
+    public async Task ImportAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var utcNow = DateTime.UtcNow;
         var latestPublishedAt = await articleRepository.GetLatestPublishedAtAsync(ArticleType.Police);
         var cutoff = latestPublishedAt ?? utcNow.AddDays(-2);
-        var policeArticleLinks = await GetArticleLinksAsync(cutoff, cancellationToken);
+        var policeArticleLinks = await GetArticleLinksAsync(cutoff);
 
         var originUrls = policeArticleLinks.Select(link => link.OriginUrl).ToArray();
         var existingOriginUrls = await articleRepository.GetExistingOriginUrlsAsync(originUrls);
@@ -37,8 +35,6 @@ public class PoliceArticleImportService(
 
         foreach (var policeArticleLink in policeArticleLinks)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (!knownOriginUrls.Add(policeArticleLink.OriginUrl))
             {
                 existing++;
@@ -74,8 +70,6 @@ public class PoliceArticleImportService(
             imported++;
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         if (imported > 0)
         {
             await unitOfWork.SaveChangesAsync();
@@ -84,7 +78,7 @@ public class PoliceArticleImportService(
         logger.LogInformation("Police article import finished since {Cutoff}: {Imported} imported, {Existing} existing, {Invalid} invalid, {OutsidePeriod} outside period.", cutoff, imported, existing, invalid, outsidePeriod);
     }
 
-    private async Task<IReadOnlyList<PoliceArticleLink>> GetArticleLinksAsync(DateTime cutoff, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<PoliceArticleLink>> GetArticleLinksAsync(DateTime cutoff)
     {
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
         var cutoffDate = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(cutoff, timeZone));
@@ -94,7 +88,6 @@ public class PoliceArticleImportService(
 
         for (var pageNumber = 1; ; pageNumber = pageNumber + 1)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var pageLinks = await policeArticlesRepository.GetListAsync(pageNumber);
 
             if (pageLinks.Count == 0)

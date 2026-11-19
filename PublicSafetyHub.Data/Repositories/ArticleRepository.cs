@@ -29,11 +29,6 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
 
     public async Task<List<string>> GetExistingOriginUrlsAsync(IReadOnlyCollection<string> originUrls)
     {
-        return await GetExistingOriginUrlsAsync(originUrls, CancellationToken.None);
-    }
-
-    public async Task<List<string>> GetExistingOriginUrlsAsync(IReadOnlyCollection<string> originUrls, CancellationToken cancellationToken)
-    {
         if (originUrls.Count == 0)
         {
             return [];
@@ -44,6 +39,6 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
             .IgnoreQueryFilters()
             .Where(article => originUrls.Contains(article.OriginUrl))
             .Select(article => article.OriginUrl)
-            .ToListAsync(cancellationToken);
+            .ToListAsync();
     }
 }

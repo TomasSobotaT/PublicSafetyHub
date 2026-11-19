@@ -9,8 +9,6 @@ public interface IBaseRepository<TEntity, T> where TEntity : class, IBaseEntity<
 {
     Task AddAsync(TEntity entity);
 
-    Task AddAsync(TEntity entity, CancellationToken cancellationToken);
-
     void Update(TEntity entity);
 
     void Delete(TEntity entity);

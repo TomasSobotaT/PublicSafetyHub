@@ -19,19 +19,17 @@ public class FirefightersArticleImportService(
     IFirefightersArticleImportOptions options,
     ILogger<FirefightersArticleImportService> logger) : IFirefightersArticleImportService
 {
-    public async Task ImportAsync(CancellationToken cancellationToken)
+    public async Task ImportAsync()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         if (string.IsNullOrWhiteSpace(options.Username) || string.IsNullOrWhiteSpace(options.Password))
         {
             logger.LogWarning("Firefighters article import skipped: IMAP credentials are missing.");
             return;
         }
 
-        var links = await firefightersArticlesRepository.GetArticleLinksFromEmailNewslettersAsync(cancellationToken);
+        var links = await firefightersArticlesRepository.GetArticleLinksFromEmailNewslettersAsync();
         var distinctLinks = links.Distinct(StringComparer.Ordinal).ToArray();
-        var existingUrls = await articleRepository.GetExistingOriginUrlsAsync(distinctLinks, cancellationToken);
+        var existingUrls = await articleRepository.GetExistingOriginUrlsAsync(distinctLinks);
 
         var imported = 0;
         var existing = 0;
@@ -41,8 +39,6 @@ public class FirefightersArticleImportService(
 
         foreach (var originUrl in distinctLinks)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             if (!knownUrls.Add(originUrl))
             {
                 existing++;
@@ -53,8 +49,8 @@ public class FirefightersArticleImportService(
 
             try
             {
-                article = await firefightersArticlesRepository.GetArticleAsync(originUrl, cancellationToken);
-                var result = await validator.ValidateAsync(article, cancellationToken);
+                article = await firefightersArticlesRepository.GetArticleAsync(originUrl);
+                var result = await validator.ValidateAsync(article);
 
                 if (!result.IsValid)
                 {
@@ -63,14 +59,12 @@ public class FirefightersArticleImportService(
                     continue;
                 }
             }
-            catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
+            catch (Exception exception)
             {
                 failed++;
                 logger.LogError(exception, "Firefighters article detail failed for {OriginUrl}; continuing with other articles.", originUrl);
                 continue;
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
 
             await articleRepository.AddAsync(new ArticleEntity
             {
@@ -79,16 +73,14 @@ public class FirefightersArticleImportService(
                 OriginUrl = originUrl,
                 PublishedAt = article.PublishedAt,
                 Type = ArticleType.Firefighters
-            }, cancellationToken);
+            });
 
             imported++;
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-
         if (imported > 0)
         {
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync();
         }
 
         logger.LogInformation("Firefighters article import finished: {Imported} imported, {Existing} existing, {Failed} failed.", imported, existing, failed);

@@ -41,19 +41,19 @@ public class ArticleImportJob(
                     }
                 }
 
-                if (armyOptions.Enabled)
+                if (armyOptions.Enabled && !stoppingToken.IsCancellationRequested)
                 {
-                    await ImportAsync<IArmyArticleImportService>(ArticleType.Army, stoppingToken);
+                    await ImportAsync<IArmyArticleImportService>(ArticleType.Army);
                 }
 
-                if (policeOptions.Enabled)
+                if (policeOptions.Enabled && !stoppingToken.IsCancellationRequested)
                 {
-                    await ImportAsync<IPoliceArticleImportService>(ArticleType.Police, stoppingToken);
+                    await ImportAsync<IPoliceArticleImportService>(ArticleType.Police);
                 }
 
-                if (firefightersOptions.Enabled)
+                if (firefightersOptions.Enabled && !stoppingToken.IsCancellationRequested)
                 {
-                    await ImportAsync<IFirefightersArticleImportService>(ArticleType.Firefighters, stoppingToken);
+                    await ImportAsync<IFirefightersArticleImportService>(ArticleType.Firefighters);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -68,16 +68,15 @@ public class ArticleImportJob(
         }
     }
 
-    private async Task ImportAsync<TService>(ArticleType source, CancellationToken stoppingToken) where TService : class, IArticleImportService
+    private async Task ImportAsync<TService>(ArticleType source) where TService : class, IArticleImportService
     {
         try
         {
-            stoppingToken.ThrowIfCancellationRequested();
             await using var scope = scopeFactory.CreateAsyncScope();
             var service = scope.ServiceProvider.GetRequiredService<TService>();
-            await service.ImportAsync(stoppingToken);
+            await service.ImportAsync();
         }
-        catch (Exception exception) when (!stoppingToken.IsCancellationRequested)
+        catch (Exception exception)
         {
             logger.LogError(exception, "{Source} article import failed. It will be retried at the next scheduled run.", source);
         }
