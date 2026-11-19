@@ -13,7 +13,8 @@ public class AutomapperProfile : Profile
     {
         CreateMap(typeof(PagedResult<>), typeof(PagedResult<>));
         CreateMap<ArticleEntity, Article>();
-        CreateMap<ArticleFilter, ArticleSpecification>();
+        CreateMap<ArticleFilter, ArticleSpecification>()
+            .ForMember(destination => destination.QueryEmbedding, options => options.Ignore());
         CreateMap<UserEntity, User>();
     }
 }

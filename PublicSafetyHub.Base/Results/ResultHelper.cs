@@ -8,4 +8,6 @@ public static class ResultHelper
 
     public static ApplicationError NotFound(string message) => new(ErrorType.NotFound, message);
 
+    public static ApplicationError Unavailable(string message) => new(ErrorType.Unavailable, message);
+
 }

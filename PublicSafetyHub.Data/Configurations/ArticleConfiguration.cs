@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NpgsqlTypes;
 using PublicSafetyHub.Core.Entities;
 
 namespace PublicSafetyHub.Data.Configurations;
@@ -11,6 +12,8 @@ public class ArticleConfiguration : IEntityTypeConfiguration<ArticleEntity>
         builder.HasQueryFilter(article => !article.IsDeleted);
         builder.Property(article => article.Title).IsRequired().HasMaxLength(400);
         builder.Property(article => article.Content).IsRequired();
+        builder.Property<NpgsqlTsVector>("SearchVector").IsGeneratedTsVectorColumn("simple", [nameof(ArticleEntity.Title), nameof(ArticleEntity.Content)]);
+        builder.HasIndex("SearchVector").HasMethod("GIN");
         builder.Property(article => article.Embedding).HasColumnType("vector(1536)").IsRequired(false);
         builder.Property(article => article.OriginUrl).HasMaxLength(2048);
         builder.HasIndex(article => article.OriginUrl).IsUnique();

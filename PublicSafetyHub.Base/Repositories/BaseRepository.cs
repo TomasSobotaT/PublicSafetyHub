@@ -43,6 +43,7 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
     {
         ArgumentNullException.ThrowIfNull(specification);
         ArgumentNullException.ThrowIfNull(paginationRequest);
+
         specification.ApplyPagination(paginationRequest);
 
         var query = GetQueryable();

@@ -16,6 +16,12 @@ public class EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> embe
         return tokenizer.CountTokens(text);
     }
 
+    public async Task<float[]> GenerateAsync(string text)
+    {
+        var vectors = await GenerateAsync(new Dictionary<int, string> { [0] = text });
+        return vectors[0];
+    }
+
     public async Task<IReadOnlyDictionary<int, float[]>> GenerateAsync(IReadOnlyDictionary<int, string> textToEmbeddingDictionary)
     {
         ArgumentNullException.ThrowIfNull(textToEmbeddingDictionary);

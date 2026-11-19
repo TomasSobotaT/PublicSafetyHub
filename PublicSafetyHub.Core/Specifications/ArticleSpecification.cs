@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Pgvector;
 using PublicSafetyHub.Base.Specifications;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Models.Enums;
@@ -10,6 +11,16 @@ public class ArticleSpecification : Specification<ArticleEntity>
     public ArticleType? Type { get; set; }
 
     public string SearchValue { get; set; }
+
+    public bool FullTextSearch { get; set; }
+
+    public bool SemanticSearch { get; set; }
+
+    public Vector QueryEmbedding { get; set; }
+
+    public bool HasSearch => !string.IsNullOrWhiteSpace(SearchValue) && (FullTextSearch || SemanticSearch);
+
+    public static bool IsAllowedSort(string sortBy) => !string.IsNullOrWhiteSpace(sortBy) && AllowedSorts.ContainsKey(sortBy.Trim());
 
     protected override Expression<Func<ArticleEntity, object>> IdSelector => article => article.Id;
 
@@ -40,12 +51,6 @@ public class ArticleSpecification : Specification<ArticleEntity>
         {
             var type = Type.Value;
             criteria.Add(article => article.Type == type);
-        }
-
-        if (!string.IsNullOrWhiteSpace(SearchValue))
-        {
-            var searchValue = SearchValue.Trim().ToLowerInvariant();
-            criteria.Add(article => article.Title.ToLower().Contains(searchValue) || article.Content.ToLower().Contains(searchValue));
         }
 
         return criteria;

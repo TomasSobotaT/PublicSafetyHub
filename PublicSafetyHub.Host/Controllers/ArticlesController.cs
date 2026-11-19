@@ -28,6 +28,7 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
 
     [HttpGet]
     [ProducesResponseType<PagedResult<Article>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetArticlesAsync([FromQuery] FilteredRequest<ArticleFilter> filteredRequest)
     {
         var result = await articleService.GetArticlesAsync(filteredRequest);
