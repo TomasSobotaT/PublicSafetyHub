@@ -8,6 +8,8 @@ public interface IArticleRepository : IExtendedBaseRepository<ArticleEntity, int
 {
     Task<List<string>> GetExistingOriginUrlsAsync(IReadOnlyCollection<string> originUrls);
 
+    Task<List<string>> GetExistingOriginUrlsAsync(IReadOnlyCollection<string> originUrls, CancellationToken cancellationToken);
+
     Task<DateTime?> GetLatestPublishedAtAsync(ArticleType type);
 
     Task<List<ArticleEntity>> GetArtíclesWithoutEmbeddingAsync(int lastCheckedArticleId, int count);

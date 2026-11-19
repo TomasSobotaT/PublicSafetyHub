@@ -12,11 +12,12 @@ public class ArticleImportJob(
     IArticleImportOptions options,
     IArmyArticleImportOptions armyOptions,
     IPoliceArticleImportOptions policeOptions,
+    IFirefightersArticleImportOptions firefightersOptions,
     ILogger<ArticleImportJob> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!armyOptions.Enabled && !policeOptions.Enabled)
+        if (!armyOptions.Enabled && !policeOptions.Enabled && !firefightersOptions.Enabled)
         {
             return;
         }
@@ -48,6 +49,11 @@ public class ArticleImportJob(
                 if (policeOptions.Enabled)
                 {
                     await ImportAsync<IPoliceArticleImportService>(ArticleType.Police, stoppingToken);
+                }
+
+                if (firefightersOptions.Enabled)
+                {
+                    await ImportAsync<IFirefightersArticleImportService>(ArticleType.Firefighters, stoppingToken);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)

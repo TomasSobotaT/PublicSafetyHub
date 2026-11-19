@@ -16,6 +16,11 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
         await GetDbSet().AddAsync(entity);
     }
 
+    public virtual async Task AddAsync(TEntity entity, CancellationToken cancellationToken)
+    {
+        await GetDbSet().AddAsync(entity, cancellationToken);
+    }
+
     public virtual void Update(TEntity entity)
     {
         GetDbSet().Update(entity);

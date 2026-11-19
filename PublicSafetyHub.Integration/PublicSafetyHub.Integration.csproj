@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.13.1" />
+    <PackageReference Include="MailKit" Version="5.0.0" />
     <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />
   </ItemGroup>
 </Project>

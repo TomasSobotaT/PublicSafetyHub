@@ -25,7 +25,7 @@ public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient
         var mainHtmlNode = document.DocumentNode.SelectSingleNode("//main[@id='main']");
         var headingHtmlNode = mainHtmlNode?.SelectSingleNode(".//h1");
 
-        if (headingHtmlNode is null || TextHelper.NormalizeText(headingHtmlNode.InnerText) != "Zpravodajství")
+        if (headingHtmlNode is null || HtmlHelper.NormalizeText(headingHtmlNode.InnerText) != "Zpravodajství")
         {
             throw new InvalidDataException($"Police list page {pageNumber} has an unexpected structure.");
         }
@@ -51,7 +51,7 @@ public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient
         {
             var cardHtmlNode = node.SelectSingleNode("ancestor::li[1]");
             var calendarHtmlNode = cardHtmlNode?.SelectSingleNode(".//*[name()='svg' and contains(@class, 'lucide-calendar')]/..");
-            DateOnly? publishedOn = DateOnly.TryParse(TextHelper.NormalizeText(calendarHtmlNode?.InnerText ?? ""), CultureInfo.GetCultureInfo("cs-CZ"), DateTimeStyles.AllowWhiteSpaces, out var date) ? date : null;
+            DateOnly? publishedOn = DateOnly.TryParse(HtmlHelper.NormalizeText(calendarHtmlNode?.InnerText ?? ""), CultureInfo.GetCultureInfo("cs-CZ"), DateTimeStyles.AllowWhiteSpaces, out var date) ? date : null;
 
             var href = WebUtility.HtmlDecode(node.GetAttributeValue("href", "")).Trim();
 
@@ -92,14 +92,14 @@ public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient
 
         if (perex is not null)
         {
-            paragraphs.Add(GetPlainText(perex));
+            paragraphs.Add(HtmlHelper.GetPlainText(perex));
         }
 
-        paragraphs.Add(GetPlainText(contentHtmlNode));
+        paragraphs.Add(HtmlHelper.GetPlainText(contentHtmlNode));
 
         return new PoliceArticle
         {
-            Title = TextHelper.NormalizeText(titleHtmlNode.InnerText),
+            Title = HtmlHelper.NormalizeText(titleHtmlNode.InnerText),
             Content = string.Join("\n\n", paragraphs.Where(paragraph => !string.IsNullOrWhiteSpace(paragraph))),
             OriginUrl = originUrl,
             PublishedAt = publishedAt
@@ -115,20 +115,4 @@ public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient
         return document;
     }
 
-    private static string GetPlainText(HtmlNode node)
-    {
-        var cloneHtmlNode = node.CloneNode(true);
-        var excludedNodes = cloneHtmlNode.SelectNodes(".//script | .//style | .//noscript");
-
-        if (excludedNodes is not null)
-        {
-            foreach (var excludedNode in excludedNodes)
-            {
-                excludedNode.Remove();
-            }
-        }
-
-        var textNodes = cloneHtmlNode.SelectNodes(".//text()");
-        return textNodes is null ? "" : TextHelper.NormalizeText(string.Join(" ", textNodes.Select(text => text.InnerText)));
-    }
 }

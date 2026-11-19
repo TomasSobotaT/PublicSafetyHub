@@ -7,58 +7,61 @@ namespace PublicSafetyHub.Host.BuilderExtensions;
 
 public static class OpenApiServiceCollectionExtension
 {
-    public static IServiceCollection AddOpenApiRegistration(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        services.AddApiVersioning(options =>
+        public IServiceCollection AddOpenApiRegistration()
         {
-            options.DefaultApiVersion = new ApiVersion(1, 0);
-            options.ReportApiVersions = true;
-            options.ApiVersionReader = new UrlSegmentApiVersionReader();
-        }).AddMvc().AddApiExplorer(options =>
-        {
-            options.GroupNameFormat = "'v'VVV";
-            options.SubstituteApiVersionInUrl = true;
-        }).AddOpenApi(versionedOptions =>
-        {
-            var options = versionedOptions.Document;
-            options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
-            options.AddSchemaTransformer<NumericSchemaTransformer>();
-            options.AddOperationTransformer<OperationIdTransformer>();
-            options.AddOperationTransformer<TokenOperationTransformer>();
-            options.AddDocumentTransformer((document, context, _) =>
+            services.AddApiVersioning(options =>
             {
-                document.Info.Title = "PublicSafetyHub API";
-                document.Info.Version = context.DocumentName;
-                document.Components ??= new OpenApiComponents();
-                document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-                document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    Description = "Paste the access_token returned by the token endpoint."
-                };
-
-                return Task.CompletedTask;
-            });
-
-            options.AddOperationTransformer((operation, context, _) =>
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+                options.ReportApiVersions = true;
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
+            }).AddMvc().AddApiExplorer(options =>
             {
-                var metadata = context.Description.ActionDescriptor.EndpointMetadata;
-
-                if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
+                options.GroupNameFormat = "'v'VVV";
+                options.SubstituteApiVersionInUrl = true;
+            }).AddOpenApi(versionedOptions =>
+            {
+                var options = versionedOptions.Document;
+                options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+                options.AddSchemaTransformer<NumericSchemaTransformer>();
+                options.AddOperationTransformer<OperationIdTransformer>();
+                options.AddOperationTransformer<TokenOperationTransformer>();
+                options.AddDocumentTransformer((document, context, _) =>
                 {
-                    operation.Security ??= [];
-                    operation.Security.Add(new OpenApiSecurityRequirement
+                    document.Info.Title = "PublicSafetyHub API";
+                    document.Info.Version = context.DocumentName;
+                    document.Components ??= new OpenApiComponents();
+                    document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+                    document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
                     {
-                        [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = []
-                    });
-                }
+                        Type = SecuritySchemeType.Http,
+                        Scheme = "bearer",
+                        BearerFormat = "JWT",
+                        Description = "Paste the access_token returned by the token endpoint."
+                    };
 
-                return Task.CompletedTask;
+                    return Task.CompletedTask;
+                });
+
+                options.AddOperationTransformer((operation, context, _) =>
+                {
+                    var metadata = context.Description.ActionDescriptor.EndpointMetadata;
+
+                    if (metadata.OfType<IAuthorizeData>().Any() && !metadata.OfType<IAllowAnonymous>().Any())
+                    {
+                        operation.Security ??= [];
+                        operation.Security.Add(new OpenApiSecurityRequirement
+                        {
+                            [new OpenApiSecuritySchemeReference("Bearer", context.Document)] = []
+                        });
+                    }
+
+                    return Task.CompletedTask;
+                });
             });
-        });
 
-        return services;
+            return services;
+        }
     }
 }

@@ -6,26 +6,29 @@ namespace PublicSafetyHub.Host.BuilderExtensions;
 
 public static class DatabaseServiceCollectionExtension
 {
-    public static IServiceCollection AddDatabase(this IServiceCollection services, IConfiguration configuration)
+    extension(IServiceCollection services)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Set ConnectionStrings:DefaultConnection using user secrets or environment variables.");
-
-        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
-
-        services.AddDbContext<PublicSafetyHubDbContext>(options =>
+        public IServiceCollection AddDatabase(IConfiguration configuration)
         {
-            options.UseNpgsql(connectionString, npgsql => npgsql.UseVector());
-            options.UseOpenIddict();
-        });
+            var connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Set ConnectionStrings:DefaultConnection using user secrets or environment variables.");
 
-        services.TryAddScoped<IPublicSafetyHubDbContext>(provider => provider.GetRequiredService<PublicSafetyHubDbContext>());
+            ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
 
-        services.AddOpenIddict().AddCore(options =>
-        {
-            options.DisableEntityCaching();
-            options.UseEntityFrameworkCore().UseDbContext<PublicSafetyHubDbContext>();
-        });
+            services.AddDbContext<PublicSafetyHubDbContext>(options =>
+            {
+                options.UseNpgsql(connectionString, npgsql => npgsql.UseVector());
+                options.UseOpenIddict();
+            });
 
-        return services;
+            services.TryAddScoped<IPublicSafetyHubDbContext>(provider => provider.GetRequiredService<PublicSafetyHubDbContext>());
+
+            services.AddOpenIddict().AddCore(options =>
+            {
+                options.DisableEntityCaching();
+                options.UseEntityFrameworkCore().UseDbContext<PublicSafetyHubDbContext>();
+            });
+
+            return services;
+        }
     }
 }

@@ -10,29 +10,32 @@ namespace PublicSafetyHub.Host.BuilderExtensions;
 
 public static class AiServiceCollectionExtension
 {
-    public static IServiceCollection AddAiRegistration(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        services.TryAddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(provider =>
+        public IServiceCollection AddAiRegistration()
         {
-            var options = provider.GetRequiredService<IOpenAiOptions>();
-            ArgumentException.ThrowIfNullOrWhiteSpace(options.ApiKey);
-            ArgumentException.ThrowIfNullOrWhiteSpace(options.EmbeddingModel);
+            services.TryAddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(provider =>
+            {
+                var options = provider.GetRequiredService<IOpenAiOptions>();
+                ArgumentException.ThrowIfNullOrWhiteSpace(options.ApiKey);
+                ArgumentException.ThrowIfNullOrWhiteSpace(options.EmbeddingModel);
 
-            return new OpenAIClient(options.ApiKey)
-                .GetEmbeddingClient(options.EmbeddingModel)
-                .AsIEmbeddingGenerator();
-        });
+                return new OpenAIClient(options.ApiKey)
+                    .GetEmbeddingClient(options.EmbeddingModel)
+                    .AsIEmbeddingGenerator();
+            });
 
-        services.TryAddSingleton<Tokenizer>(provider =>
-        {
-            var options = provider.GetRequiredService<IOpenAiOptions>();
-            ArgumentException.ThrowIfNullOrWhiteSpace(options.EmbeddingModel);
+            services.TryAddSingleton<Tokenizer>(provider =>
+            {
+                var options = provider.GetRequiredService<IOpenAiOptions>();
+                ArgumentException.ThrowIfNullOrWhiteSpace(options.EmbeddingModel);
 
-            return TiktokenTokenizer.CreateForModel(options.EmbeddingModel);
-        });
+                return TiktokenTokenizer.CreateForModel(options.EmbeddingModel);
+            });
 
-        services.TryAddScoped<IEmbeddingService, EmbeddingService>();
+            services.TryAddScoped<IEmbeddingService, EmbeddingService>();
 
-        return services;
+            return services;
+        }
     }
 }

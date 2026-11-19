@@ -46,8 +46,8 @@ public class ArmyArticlesRepository(IArmyArticlesClient armyArticlesClient, IArm
 
                 articles.Add(new ArmyArticle
                 {
-                    Title = TextHelper.NormalizeText(itemXElement.Element("title")?.Value ?? ""),
-                    Description = TextHelper.NormalizeText(description.DocumentNode.InnerText),
+                    Title = HtmlHelper.NormalizeText(itemXElement.Element("title")?.Value ?? ""),
+                    Description = HtmlHelper.NormalizeText(description.DocumentNode.InnerText),
                     OriginUrl = originUrl,
                     PublishedAt = ParsePublishedAt(itemXElement.Element("pubDate")?.Value)
                 });
@@ -59,8 +59,7 @@ public class ArmyArticlesRepository(IArmyArticlesClient armyArticlesClient, IArm
 
     private static DateTime? ParsePublishedAt(string value)
     {
-        if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture,
-            DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal, out var publishedAt))
+        if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal, out var publishedAt))
         {
             return null;
         }
