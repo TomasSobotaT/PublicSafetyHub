@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using OpenIddict.Abstractions;
+using PublicSafetyHub.Base.Auth;
 
 namespace PublicSafetyHub.Base.UserContext;
 
@@ -11,5 +12,7 @@ public interface IHttpUserContext
 
     OpenIddictRequest GetTokenRequest();
 
-    Task<ClaimsPrincipal> GetRefreshTokenPrincipalAsync();
+    AuthorizationLoginSubmission GetAuthorizationSubmission();
+
+    Task<ClaimsPrincipal> GetTokenPrincipalAsync();
 }

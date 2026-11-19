@@ -1,13 +1,15 @@
 using System.Security.Claims;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Models.Auth.Requests;
-using PublicSafetyHub.Models.Auth.Responses;
+using PublicSafetyHub.Core.Models;
 
 namespace PublicSafetyHub.Application.Services.Interfaces;
 
 public interface IAuthService
 {
-    Task<ApplicationResult<User>> RegisterUserAsync(RegisterUserRequest registerUserRequest);
+    ApplicationResult<AuthorizationFlowResult> PrepareAuthorization();
+
+    Task<ApplicationResult<AuthorizationFlowResult>> AuthorizeAsync();
 
     Task<ApplicationResult<ClaimsPrincipal>> LoginAsync(string email, string password, string clientId, IEnumerable<string> scopes);
 

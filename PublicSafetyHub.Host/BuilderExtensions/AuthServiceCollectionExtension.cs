@@ -8,6 +8,9 @@ using OpenIddict.Abstractions;
 using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Data.Context;
+using PublicSafetyHub.Host.Authentication;
+using PublicSafetyHub.Application.Services;
+using PublicSafetyHub.Application.Services.Interfaces;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 
@@ -36,6 +39,7 @@ public static class AuthServiceCollectionExtension
             services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
             services.AddAuthorization(options => options.AddPolicy("ApiAccess", policy =>
             {
+                policy.AddAuthenticationSchemes(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
                 policy.RequireAuthenticatedUser();
                 policy.RequireAssertion(context => context.User.HasScope(AuthConstants.ApiScope));
             }));
@@ -44,16 +48,26 @@ public static class AuthServiceCollectionExtension
                 .AddServer(options =>
                 {
                     options.SetTokenEndpointUris("/api/v1/auth/token", "/api/v1.0/auth/token");
-                    options.AllowPasswordFlow().AllowRefreshTokenFlow();
+                    options.SetAuthorizationEndpointUris("/connect/authorize");
+                    options.AllowAuthorizationCodeFlow().AllowRefreshTokenFlow();
+                    options.RequireProofKeyForCodeExchange();
+                    options.Configure(serverOptions =>
+                    {
+                        serverOptions.CodeChallengeMethods.Clear();
+                        serverOptions.CodeChallengeMethods.Add(OpenIddictConstants.CodeChallengeMethods.Sha256);
+                    });
                     options.SetRefreshTokenReuseLeeway(TimeSpan.Zero);
-                    options.RegisterScopes(AuthConstants.ApiScope);
+                    options.RegisterScopes(AuthConstants.ApiScope, OpenIddictConstants.Scopes.OpenId,
+                        OpenIddictConstants.Scopes.Roles, OpenIddictConstants.Scopes.OfflineAccess);
                     options.DisableAccessTokenEncryption();
-                    options.UseAspNetCore().EnableTokenEndpointPassthrough();
+                    options.UseAspNetCore().EnableAuthorizationEndpointPassthrough().EnableTokenEndpointPassthrough();
                 })
                 .AddValidation(options =>
                 {
                     options.UseLocalServer();
-                    options.UseAspNetCore();
+                    options.UseAspNetCore()
+                        .DisableAccessTokenExtractionFromBodyForm()
+                        .DisableAccessTokenExtractionFromQueryString();
                     options.AddAudiences(AuthConstants.ApiResource);
                     options.EnableTokenEntryValidation();
                     options.EnableAuthorizationEntryValidation();
@@ -62,15 +76,7 @@ public static class AuthServiceCollectionExtension
             services.AddOptions<OpenIddict.Server.OpenIddictServerOptions>()
                 .Configure<IAuthOptions>((serverOptions, authOptions) =>
                 {
-                    if (!Uri.TryCreate(authOptions.Issuer, UriKind.Absolute, out var issuer) || issuer.Scheme != Uri.UriSchemeHttps)
-                    {
-                        throw new InvalidOperationException("AuthOptions:Issuer must be an absolute HTTPS URL.");
-                    }
-
-                    if (authOptions.ClientIds is null || authOptions.ClientIds.Length == 0 || authOptions.ClientIds.Any(string.IsNullOrWhiteSpace))
-                    {
-                        throw new InvalidOperationException("AuthOptions:ClientIds must contain nonempty client identifiers.");
-                    }
+                    AuthConfiguration.Validate(authOptions);
 
                     if (authOptions.AccessTokenMinutes is <= 0 or > 60 || authOptions.RefreshTokenDays is <= 0 or > 90)
                     {
@@ -110,6 +116,9 @@ public static class AuthServiceCollectionExtension
                     serverOptions.RefreshTokenLifetime = TimeSpan.FromDays(authOptions.RefreshTokenDays);
                 });
 
+            services.AddSingleton<IAuthTransactionService, AuthTransactionService>();
+            services.AddTransient<AuthorizationLoginMiddleware>();
+
             services.AddRateLimiter(options =>
             {
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -123,6 +132,12 @@ public static class AuthServiceCollectionExtension
                     }));
                 options.OnRejected = async (context, _) =>
                 {
+                    context.HttpContext.Response.Headers.CacheControl = "no-store";
+                    if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                    {
+                        context.HttpContext.Response.Headers.RetryAfter = Math.Ceiling(retryAfter.TotalSeconds)
+                            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    }
                     await context.HttpContext.Response.WriteAsJsonAsync(new ProblemDetails
                     {
                         Status = StatusCodes.Status429TooManyRequests,

@@ -10,30 +10,46 @@ public class AuthClientInitializer(IServiceScopeFactory scopeFactory, IAuthOptio
 {
     public async Task StartAsync(CancellationToken _)
     {
+        AuthConfiguration.Validate(options);
         using var scope = scopeFactory.CreateScope();
-        var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        var openIddictApplicationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        foreach (var clientId in options.ClientIds.Distinct(StringComparer.Ordinal))
+        foreach (var client in options.Clients)
         {
-            if (await manager.FindByClientIdAsync(clientId) is not null)
+            var descriptor = new OpenIddictApplicationDescriptor
             {
-                continue;
-            }
-
-            await manager.CreateAsync(new OpenIddictApplicationDescriptor
-            {
-                ClientId = clientId,
+                ClientId = client.ClientId,
                 ClientType = ClientTypes.Public,
                 ConsentType = ConsentTypes.Implicit,
-                DisplayName = clientId,
-                Permissions =
-                {
+                DisplayName = client.ClientId
+            };
+
+            if (client.Enabled)
+            {
+                descriptor.RedirectUris.UnionWith(client.RedirectUris.Select(address => new Uri(address)));
+                descriptor.Permissions.UnionWith([
+                    Permissions.Endpoints.Authorization,
                     Permissions.Endpoints.Token,
-                    Permissions.GrantTypes.Password,
+                    Permissions.GrantTypes.AuthorizationCode,
                     Permissions.GrantTypes.RefreshToken,
-                    Permissions.Prefixes.Scope + AuthConstants.ApiScope
-                }
-            });
+                    Permissions.ResponseTypes.Code
+                ]);
+                descriptor.Permissions.UnionWith(client.Scopes
+                    .Where(value => value is not (Scopes.OpenId or Scopes.OfflineAccess))
+                    .Select(value => Permissions.Prefixes.Scope + value));
+                descriptor.Requirements.Add(Requirements.Features.ProofKeyForCodeExchange);
+            }
+
+            var application = await openIddictApplicationManager.FindByClientIdAsync(client.ClientId);
+
+            if (application is null)
+            {
+                await openIddictApplicationManager.CreateAsync(descriptor);
+            }
+            else
+            {
+                await openIddictApplicationManager.UpdateAsync(application, descriptor);
+            }
         }
     }
 

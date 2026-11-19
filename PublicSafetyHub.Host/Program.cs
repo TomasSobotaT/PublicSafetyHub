@@ -1,6 +1,6 @@
-using Asp.Versioning.ApiExplorer;
 using PublicSafetyHub.Host.BuilderExtensions;
 using PublicSafetyHub.Data.Context;
+using PublicSafetyHub.Host.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,26 +22,12 @@ if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("Develop
     await dbContext.Database.EnsureCreatedAsync();
 }
 
-app.UseHttpsRedirection();
 app.UseRouting();
-
 app.UseRateLimiter();
+app.UseMiddleware<AuthorizationLoginMiddleware>();
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi().WithDocumentPerVersion();
-    app.UseSwaggerUI(options =>
-    {
-        var versions = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-        foreach (var version in versions.ApiVersionDescriptions)
-        {
-            options.SwaggerEndpoint($"/openapi/{version.GroupName}.json", $"PublicSafetyHub API {version.GroupName}");
-        }
-    });
-}
-
+app.UseOpenApi();
 app.MapControllers();
-
 app.Run();

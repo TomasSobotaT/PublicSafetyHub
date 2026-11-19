@@ -13,33 +13,14 @@ public class TokenService(IAuthService authService, IAuthOptions authOptions, IH
     {
         var openIddictRequest = httpUserContext.GetTokenRequest();
 
-        if (openIddictRequest.ClientId is null || !authOptions.ClientIds.Contains(openIddictRequest.ClientId, StringComparer.Ordinal))
+        if (openIddictRequest.ClientId is null || !authOptions.Clients.Any(client => client.Enabled && string.Equals(client.ClientId, openIddictRequest.ClientId, StringComparison.Ordinal)))
         {
             return TokenExchangeResult.Failure(Errors.InvalidClient, "Invalid client.");
         }
 
-        if (openIddictRequest.IsPasswordGrantType())
+        if (openIddictRequest.IsAuthorizationCodeGrantType() || openIddictRequest.IsRefreshTokenGrantType())
         {
-            if (string.IsNullOrWhiteSpace(openIddictRequest.Username) || openIddictRequest.Username.Length > 256 || string.IsNullOrEmpty(openIddictRequest.Password) || openIddictRequest.Password.Length > 128)
-            {
-                return TokenExchangeResult.Failure(Errors.InvalidGrant, "Invalid credentials or session.");
-            }
-
-            if (!openIddictRequest.HasScope(AuthConstants.ApiScope))
-            {
-                return TokenExchangeResult.Failure(Errors.InvalidScope, "The public-safety-hub-api scope is required.");
-            }
-
-            var login = await authService.LoginAsync(openIddictRequest.Username, openIddictRequest.Password, openIddictRequest.ClientId, openIddictRequest.GetScopes());
-
-            return login.IsSuccess
-                ? TokenExchangeResult.Success(login.Value)
-                : TokenExchangeResult.Failure(Errors.InvalidGrant, login.Error.Message);
-        }
-
-        if (openIddictRequest.IsRefreshTokenGrantType())
-        {
-            var principal = await httpUserContext.GetRefreshTokenPrincipalAsync();
+            var principal = await httpUserContext.GetTokenPrincipalAsync();
 
             if (principal is null)
             {
@@ -47,11 +28,18 @@ public class TokenService(IAuthService authService, IAuthOptions authOptions, IH
             }
 
             var originalScopes = principal.GetScopes();
-            var scopes = openIddictRequest.Scope is null ? originalScopes : openIddictRequest.GetScopes();
+            var scopes = openIddictRequest.IsRefreshTokenGrantType() && openIddictRequest.Scope is not null
+                ? openIddictRequest.GetScopes() : originalScopes;
 
             if (scopes.Any(scope => !originalScopes.Contains(scope, StringComparer.Ordinal)))
             {
                 return TokenExchangeResult.Failure(Errors.InvalidScope, "The granted scopes cannot be expanded.");
+            }
+
+            var client = authOptions.Clients.Single(value => string.Equals(value.ClientId, openIddictRequest.ClientId, StringComparison.Ordinal));
+            if (scopes.Any(scope => !client.Scopes.Contains(scope, StringComparer.Ordinal)))
+            {
+                return TokenExchangeResult.Failure(Errors.InvalidScope, "The granted scopes are no longer allowed for this client.");
             }
 
             var refresh = await authService.RefreshAsync(principal, scopes);

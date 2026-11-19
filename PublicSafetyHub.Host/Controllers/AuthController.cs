@@ -1,13 +1,12 @@
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using OpenIddict.Server.AspNetCore;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Models.Auth.Requests;
 using PublicSafetyHub.Models.Auth.Responses;
+using PublicSafetyHub.Host.Extensions;
 
 namespace PublicSafetyHub.Host.Controllers;
 
@@ -21,14 +20,30 @@ namespace PublicSafetyHub.Host.Controllers;
 public class AuthController(IAuthService authService, ITokenService tokenService) : ControllerBase
 {
     [AllowAnonymous]
-    [HttpPost("RegisterUser")]
-    [ProducesResponseType<User>(StatusCodes.Status200OK)]
+    [ApiVersionNeutral]
+    [HttpGet("~/connect/authorize")]
+    [ProducesResponseType<AuthorizationTransactionResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> RegisterUserAsync(RegisterUserRequest registerUserRequest)
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status503ServiceUnavailable)]
+    public IActionResult PrepareAuthorization()
     {
-        var result = await authService.RegisterUserAsync(registerUserRequest);
+        var result = authService.PrepareAuthorization();
+        return result.ToOpenIddictActionResult();
+    }
 
-        return result.ToActionResult();
+    [AllowAnonymous]
+    [ApiVersionNeutral]
+    [HttpPost("~/connect/authorize")]
+    [Consumes("application/x-www-form-urlencoded")]
+    [ProducesResponseType(StatusCodes.Status302Found)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> AuthorizeAsync()
+    {
+        var result = await authService.AuthorizeAsync();
+        return result.ToOpenIddictActionResult();
     }
 
     [AllowAnonymous]
@@ -41,16 +56,7 @@ public class AuthController(IAuthService authService, ITokenService tokenService
     public async Task<IActionResult> TokenAsync()
     {
         var result = await tokenService.ExchangeAsync();
-        if (result.IsSuccess)
-        {
-            return SignIn(result.Principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-        }
-
-        return Forbid(new AuthenticationProperties(new Dictionary<string, string>
-        {
-            [OpenIddictServerAspNetCoreConstants.Properties.Error] = result.Error,
-            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = result.ErrorDescription
-        }), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        return result.ToOpenIddictActionResult();
     }
 
     [HttpPost("Logout")]
@@ -60,7 +66,6 @@ public class AuthController(IAuthService authService, ITokenService tokenService
     public async Task<IActionResult> LogoutAsync()
     {
         var result = await authService.LogoutAsync();
-
         return result.ToActionResult();
     }
 
@@ -71,7 +76,7 @@ public class AuthController(IAuthService authService, ITokenService tokenService
     public async Task<IActionResult> DeleteUserAsync(DeleteUserRequest deleteUserRequest)
     {
         var result = await authService.DeleteUserAsync(deleteUserRequest);
-
         return result.ToActionResult();
     }
+
 }

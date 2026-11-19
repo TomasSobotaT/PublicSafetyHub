@@ -5,7 +5,7 @@ using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Models.Articles;
 using PublicSafetyHub.Models.Auth.Responses;
 
-namespace PublicSafetyHub.Application.Mappings;
+namespace PublicSafetyHub.Application.Automapper;
 
 public class AutomapperProfile : Profile
 {

@@ -7,6 +7,7 @@ using OpenIddict.Abstractions;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Core.Entities;
+using PublicSafetyHub.Core.Models;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Base.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
@@ -28,10 +29,101 @@ public class AuthService(
     IOpenIddictTokenManager tokenManager,
     IHttpUserContext httpUserContext,
     IValidator<RegisterUserRequest> registerUserRequestValidator,
-    IValidator<DeleteUserRequest> deleteUserRequestValidator)
+    IValidator<DeleteUserRequest> deleteUserRequestValidator,
+    IAuthOptions authOptions,
+    IAuthTransactionService authTransactionService)
     : IAuthService
 {
-    public async Task<ApplicationResult<User>> RegisterUserAsync(RegisterUserRequest registerUserRequest)
+    public ApplicationResult<AuthorizationFlowResult> PrepareAuthorization()
+    {
+        var request = httpUserContext.GetTokenRequest();
+        var validation = ValidateAuthorizationRequest(request);
+        return validation is not null ? validation : CreateAuthorizationTransaction(request);
+    }
+
+    private AuthorizationFlowResult ValidateAuthorizationRequest(OpenIddictRequest request)
+    {
+        var client = authOptions.Clients.SingleOrDefault(client => client.Enabled && string.Equals(client.ClientId, request.ClientId, StringComparison.Ordinal));
+
+        if (client is null)
+        {
+            return AuthorizationFlowResult.Failure(Errors.UnauthorizedClient, "The client is not enabled.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.RedirectUri) || request.GetParameters().Any(parameter => parameter.Key is "username" or "password" or "email" or "transaction_id" or "intent" or "confirm_password"))
+        {
+            return AuthorizationFlowResult.Failure(Errors.InvalidRequest, "A redirect_uri is required and credentials must only be submitted in the authorization POST body.");
+        }
+
+        if (!request.HasScope(AuthConstants.ApiScope) || request.GetScopes().Any(scope => !client.Scopes.Contains(scope, StringComparer.Ordinal)))
+        {
+            return AuthorizationFlowResult.Failure(Errors.InvalidScope, "The API scope is required and all requested scopes must be allowed for this client.");
+        }
+
+        return request.HasPromptValue(PromptValues.None)
+            ? AuthorizationFlowResult.Failure(Errors.LoginRequired, "Interactive authentication is required.")
+            : null;
+    }
+
+    public async Task<ApplicationResult<AuthorizationFlowResult>> AuthorizeAsync()
+    {
+        var submission = httpUserContext.GetAuthorizationSubmission();
+
+        if (submission is null || submission.Intent is not ("login" or "register"))
+        {
+            return ResultHelper.Validation("Invalid authorization request.");
+        }
+
+        var request = httpUserContext.GetTokenRequest();
+        var validation = ValidateAuthorizationRequest(request);
+
+        if (validation is not null)
+        {
+            return validation;
+        }
+
+        var register = submission.Intent == "register";
+
+        if (register)
+        {
+            var registration = await RegisterUserAsync(new RegisterUserRequest
+            {
+                Email = submission.Email,
+                Password = submission.Password,
+                ConfirmPassword = submission.ConfirmPassword
+            });
+
+            if (!registration.IsSuccess)
+            {
+                return registration.Error;
+            }
+        }
+
+        var login = await LoginAsync(submission.Email, submission.Password, request.ClientId, request.GetScopes());
+
+        if (!login.IsSuccess)
+        {
+            return register
+                ? ResultHelper.Unauthorized("The account was created, but sign-in failed. Please try signing in.")
+                : login.Error;
+        }
+
+        return AuthorizationFlowResult.Success(login.Value);
+    }
+
+    private ApplicationResult<AuthorizationFlowResult> CreateAuthorizationTransaction(OpenIddictRequest request)
+    {
+        var id = authTransactionService.CreateTransaction(request);
+
+        if (id is null)
+        {
+            return ResultHelper.Unavailable("Authorization is temporarily unavailable. Please try again later.");
+        }
+
+        return AuthorizationFlowResult.Interaction(new AuthorizationTransactionResponse { TransactionId = id });
+    }
+
+    private async Task<ApplicationResult<User>> RegisterUserAsync(RegisterUserRequest registerUserRequest)
     {
         var validationResult = await registerUserRequestValidator.ValidateAsync(registerUserRequest);
 
@@ -62,6 +154,11 @@ public class AuthService(
 
     public async Task<ApplicationResult<ClaimsPrincipal>> LoginAsync(string email, string password, string clientId, IEnumerable<string> scopes)
     {
+        if (string.IsNullOrWhiteSpace(email) || email.Length > 256 || string.IsNullOrWhiteSpace(password) || password.Length > 128)
+        {
+            return ResultHelper.Unauthorized("Invalid credentials or session.");
+        }
+
         var normalizedEmail = userManager.NormalizeEmail(email.Trim());
         var user = await userRepository.GetUserByEmailAsync(normalizedEmail);
 
@@ -117,7 +214,17 @@ public class AuthService(
         var refreshedPrincipal = await CreatePrincipalAsync(user, scopes);
         refreshedPrincipal.SetAuthorizationId(sessionId);
 
-        return refreshedPrincipal;
+        principal.SetScopes(refreshedPrincipal.GetScopes());
+        principal.SetResources(refreshedPrincipal.GetResources());
+
+        foreach (var type in new[] { Claims.Subject, Claims.Name, Claims.Email, Claims.Role, AuthConstants.SecurityStampClaim })
+        {
+            principal.SetClaims(type, refreshedPrincipal.GetClaims(type));
+        }
+
+        SetClaimDestinations(principal);
+
+        return principal;
     }
 
     public async Task<ApplicationResult<NoValueResult>> LogoutAsync()
@@ -189,7 +296,6 @@ public class AuthService(
         if (!updateResult.Succeeded)
         {
             await unitOfWork.RollbackTransactionAsync();
-
             return MapIdentityErrors(updateResult);
         }
 
@@ -208,18 +314,28 @@ public class AuthService(
         identity.SetClaim(Claims.Email, user.Email);
         identity.SetClaim(Claims.Name, user.UserName);
         var securityStamp = await userManager.GetSecurityStampAsync(user);
+
         identity.SetClaim(AuthConstants.SecurityStampClaim, securityStamp);
         var roles = await userManager.GetRolesAsync(user);
-        identity.SetClaims(Claims.Role, roles.ToImmutableArray());
+        identity.SetClaims(Claims.Role, [.. roles]);
 
         var principal = new ClaimsPrincipal(identity);
         principal.SetScopes(scopes);
         principal.SetResources(AuthConstants.ApiResource);
-        principal.SetDestinations(claim => claim.Type is Claims.Subject or Claims.Name or Claims.Email or Claims.Role
-            ? [Destinations.AccessToken]
-            : []);
+        SetClaimDestinations(principal);
 
         return principal;
+    }
+
+    private static void SetClaimDestinations(ClaimsPrincipal principal)
+    {
+        principal.SetDestinations(claim => claim.Type switch
+        {
+            Claims.Subject => [Destinations.AccessToken, Destinations.IdentityToken],
+            Claims.Role when principal.HasScope(Scopes.Roles) => [Destinations.AccessToken, Destinations.IdentityToken],
+            Claims.Name or Claims.Email or Claims.Role => [Destinations.AccessToken],
+            _ => []
+        });
     }
 
     private static ApplicationError MapIdentityErrors(IdentityResult result)

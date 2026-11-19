@@ -13,7 +13,7 @@ public class TokenOperationTransformer(IAuthOptions authOptions) : IOpenApiOpera
             return Task.CompletedTask;
         }
 
-        operation.Summary = "Sign in or refresh tokens";
+        operation.Summary = "Exchange an authorization code or refresh tokens";
         operation.RequestBody = new OpenApiRequestBody
         {
             Required = true,
@@ -27,12 +27,13 @@ public class TokenOperationTransformer(IAuthOptions authOptions) : IOpenApiOpera
                         Required = new HashSet<string> { "grant_type", "client_id" },
                         Properties = new Dictionary<string, IOpenApiSchema>
                         {
-                            ["grant_type"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = "Use password to sign in or refresh_token to renew tokens." },
-                            ["client_id"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = $"A configured public client ID, for example {authOptions.ClientIds[0]}." },
-                            ["username"] = new OpenApiSchema { Type = JsonSchemaType.String, Format = "email", Description = "Account email. Required for the password grant." },
-                            ["password"] = new OpenApiSchema { Type = JsonSchemaType.String, Format = "password", Description = "Account password. Required for the password grant." },
-                            ["refresh_token"] = new OpenApiSchema { Type = JsonSchemaType.String, Format = "password", Description = "Required for the refresh_token grant. Omit username and password." },
-                            ["scope"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = $"Request offline_access {AuthConstants.ApiScope} when signing in. On refresh, omit to keep the granted scopes or provide a subset." }
+                            ["grant_type"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = "Use authorization_code or refresh_token." },
+                            ["client_id"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = $"An enabled public client ID, for example {authOptions.Clients[0].ClientId}. No client_secret." },
+                            ["code"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = "The single-use code returned by /connect/authorize." },
+                            ["redirect_uri"] = new OpenApiSchema { Type = JsonSchemaType.String, Format = "uri", Description = "For authorization_code: the exact redirect URI used in the authorization request." },
+                            ["code_verifier"] = new OpenApiSchema { Type = JsonSchemaType.String, Format = "password", Description = "For authorization_code: the original PKCE verifier. Only S256 challenges are supported." },
+                            ["refresh_token"] = new OpenApiSchema { Type = JsonSchemaType.String, Format = "password", Description = "Required for refresh_token. Send only to the token endpoint." },
+                            ["scope"] = new OpenApiSchema { Type = JsonSchemaType.String, Description = $"Authorize with openid roles offline_access {AuthConstants.ApiScope}. On refresh, omit scope to retain granted scopes, or provide a subset." }
                         }
                     }
                 }

@@ -4,7 +4,7 @@ public interface IAuthOptions
 {
     string Issuer { get; }
 
-    string[] ClientIds { get; }
+    AuthClientOptions[] Clients { get; }
 
     int AccessTokenMinutes { get; }
 

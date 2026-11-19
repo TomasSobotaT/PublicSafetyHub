@@ -1,7 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using PublicSafetyHub.Application.Jobs;
-using PublicSafetyHub.Application.Mappings;
 using PublicSafetyHub.Application.Services;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Application.Validators;
@@ -15,6 +14,7 @@ using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Data.UnitOfWork;
 using PublicSafetyHub.Core.Repositories.Integration;
 using PublicSafetyHub.Integration.Repositories;
+using PublicSafetyHub.Application.Automapper;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 

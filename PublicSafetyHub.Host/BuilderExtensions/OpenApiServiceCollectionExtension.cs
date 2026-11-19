@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Asp.Versioning.ApiExplorer;
 using Microsoft.OpenApi;
 using Microsoft.AspNetCore.Authorization;
 using PublicSafetyHub.Host.OpenApi;
@@ -7,6 +8,24 @@ namespace PublicSafetyHub.Host.BuilderExtensions;
 
 public static class OpenApiServiceCollectionExtension
 {
+    extension(WebApplication app)
+    {
+        public WebApplication UseOpenApi()
+        {
+            app.MapOpenApi().WithDocumentPerVersion();
+            app.UseSwaggerUI(options =>
+            {
+                var versions = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+                foreach (var version in versions.ApiVersionDescriptions)
+                {
+                    options.SwaggerEndpoint($"/openapi/{version.GroupName}.json", $"PublicSafetyHub API {version.GroupName}");
+                }
+            });
+
+            return app;
+        }
+    }
+
     extension(IServiceCollection services)
     {
         public IServiceCollection AddOpenApiRegistration()
