@@ -50,6 +50,7 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
             var matches = filteredArticles
                 .Where(article => EF.Property<NpgsqlTsVector>(article, "SearchVector")
                     .Matches(EF.Functions.WebSearchToTsQuery("simple", searchValue)));
+
             var rankedMatches = matches
                 .OrderByDescending(article => EF.Property<NpgsqlTsVector>(article, "SearchVector")
                     .RankCoverDensity(EF.Functions.WebSearchToTsQuery("simple", searchValue)))
@@ -84,6 +85,7 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
             var queryEmbedding = articleSpecification.QueryEmbedding ?? throw new InvalidOperationException("Semantic search requires a query embedding.");
 
             var semanticMatches = filteredArticles.Where(article => article.Embedding != null);
+
             var rankedSemanticMatches = semanticMatches
                 .OrderBy(article => article.Embedding.CosineDistance(queryEmbedding))
                 .ThenBy(article => article.Id);
