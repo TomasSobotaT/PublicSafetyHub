@@ -98,7 +98,7 @@ public class FirefightersArticlesRepository(
             paragraphs.Add(perexText);
         }
 
-        var contentText = HtmlHelper.GetPlainText(content);
+        var contentText = FirefightersArticleHelper.GetArticleContentText(content);
         paragraphs.Add(contentText);
 
         return new FirefightersArticle

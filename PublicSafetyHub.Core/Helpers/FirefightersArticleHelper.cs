@@ -9,6 +9,7 @@ public static class FirefightersArticleHelper
     public const string Sender = "webmaster@mv.gov.cz";
     public const string Subject = "Novinky z webu HZSČR";
     private static readonly string[] subscriptionLinks = ["nastavení odběru", "nastaveni odberu", "unsubscribe", "/subscription", "/newsletter", "odhlásit", "odhlasit"];
+    private static readonly string[] contactPrefixes = ["HZS ", "Mobil:", "Telefon:", "Tel.:", "Tel:", "e-mail:", "email:"];
 
     public static async Task<IReadOnlyList<string>> ParseEmlAsync(Stream stream, CancellationToken cancellationToken)
     {
@@ -88,5 +89,57 @@ public static class FirefightersArticleHelper
         }
 
         return new UriBuilder(uri) { Fragment = "" }.Uri.AbsoluteUri;
+    }
+
+    public static string GetArticleContentText(HtmlNode content)
+    {
+        var articleContent = content.CloneNode(true);
+        var signatureRole = articleContent.SelectNodes("./p")?.LastOrDefault(IsPressSpokesperson);
+
+        if (signatureRole is not null && HasOnlyContactDetailsAfter(signatureRole))
+        {
+            var signatureStart = signatureRole;
+            var previousParagraph = signatureRole.SelectSingleNode("preceding-sibling::*[1]");
+
+            while (previousParagraph is not null && string.IsNullOrWhiteSpace(HtmlHelper.GetPlainText(previousParagraph)))
+            {
+                previousParagraph = previousParagraph.SelectSingleNode("preceding-sibling::*[1]");
+            }
+
+            var authorName = previousParagraph?.SelectSingleNode("./strong | ./b");
+
+            if (authorName is not null
+                && HtmlHelper.GetPlainText(previousParagraph) == HtmlHelper.GetPlainText(authorName))
+            {
+                signatureStart = previousParagraph;
+            }
+
+            while (signatureStart is not null)
+            {
+                var nextNode = signatureStart.NextSibling;
+                signatureStart.Remove();
+                signatureStart = nextNode;
+            }
+        }
+
+        return HtmlHelper.GetPlainText(articleContent);
+    }
+
+    private static bool IsPressSpokesperson(HtmlNode paragraph)
+    {
+        var text = HtmlHelper.GetPlainText(paragraph);
+        return string.Equals(text, "tisková mluvčí", StringComparison.OrdinalIgnoreCase) || string.Equals(text, "tiskový mluvčí", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool HasOnlyContactDetailsAfter(HtmlNode signatureRole)
+    {
+        var followingElements = signatureRole.SelectNodes("following-sibling::*");
+        return followingElements is null || followingElements.All(IsContactDetail);
+    }
+
+    private static bool IsContactDetail(HtmlNode node)
+    {
+        var text = HtmlHelper.GetPlainText(node);
+        return string.IsNullOrWhiteSpace(text) || contactPrefixes.Any(prefix => text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 }
