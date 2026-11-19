@@ -108,8 +108,7 @@ public static class FirefightersArticleHelper
 
             var authorName = previousParagraph?.SelectSingleNode("./strong | ./b");
 
-            if (authorName is not null
-                && HtmlHelper.GetPlainText(previousParagraph) == HtmlHelper.GetPlainText(authorName))
+            if (authorName is not null && HtmlHelper.GetPlainText(previousParagraph) == HtmlHelper.GetPlainText(authorName))
             {
                 signatureStart = previousParagraph;
             }
