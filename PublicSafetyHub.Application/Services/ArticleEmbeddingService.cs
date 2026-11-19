@@ -18,24 +18,7 @@ public class ArticleEmbeddingService(
     ILogger<ArticleEmbeddingService> logger)
     : IArticleEmbeddingService
 {
-    public async Task GenerateMissingEmbeddingsAsync()
-    {
-        var lastCheckedArticleId = 0;
-
-        while (true)
-        {
-            var lastArticleIdInBatch = await GenerateBatchAsync(lastCheckedArticleId);
-
-            if (!lastArticleIdInBatch.HasValue)
-            {
-                return;
-            }
-
-            lastCheckedArticleId = lastArticleIdInBatch.Value;
-        }
-    }
-
-    private async Task<int?> GenerateBatchAsync(int lastCheckedArticleId)
+    public async Task<int?> GenerateBatchAsync(int lastCheckedArticleId)
     {
         var articles = await articleRepository.GetArtíclesWithoutEmbeddingAsync(lastCheckedArticleId, options.BatchSize);
 

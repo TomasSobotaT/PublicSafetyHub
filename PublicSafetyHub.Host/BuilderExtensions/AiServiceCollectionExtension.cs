@@ -33,6 +33,11 @@ public static class AiServiceCollectionExtension
                 return TiktokenTokenizer.CreateForModel(options.EmbeddingModel);
             });
 
+            services.TryAddSingleton<Lazy<IEmbeddingGenerator<string, Embedding<float>>>>(provider =>
+                new Lazy<IEmbeddingGenerator<string, Embedding<float>>>(provider.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>));
+            services.TryAddSingleton<Lazy<Tokenizer>>(provider =>
+                new Lazy<Tokenizer>(provider.GetRequiredService<Tokenizer>));
+
             services.TryAddScoped<IEmbeddingService, EmbeddingService>();
 
             return services;

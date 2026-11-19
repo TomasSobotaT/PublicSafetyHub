@@ -18,11 +18,13 @@ public class PoliceArticleImportService(
     ILogger<PoliceArticleImportService> logger)
     : IPoliceArticleImportService
 {
+    private const int ImportOverlapDays = 2;
+
     public async Task ImportAsync()
     {
         var utcNow = DateTime.UtcNow;
         var latestPublishedAt = await articleRepository.GetLatestPublishedAtAsync(ArticleType.Police);
-        var cutoff = latestPublishedAt ?? utcNow.AddDays(-2);
+        var cutoff = (latestPublishedAt ?? utcNow).AddDays(-ImportOverlapDays);
         var policeArticleLinks = await GetArticleLinksAsync(cutoff);
 
         var originUrls = policeArticleLinks.Select(link => link.OriginUrl).ToArray();
@@ -31,6 +33,7 @@ public class PoliceArticleImportService(
         var imported = 0;
         var existing = 0;
         var invalid = 0;
+        var failed = 0;
         var outsidePeriod = 0;
 
         foreach (var policeArticleLink in policeArticleLinks)
@@ -41,14 +44,24 @@ public class PoliceArticleImportService(
                 continue;
             }
 
-            var article = await policeArticlesRepository.GetArticleAsync(policeArticleLink.OriginUrl);
-            var validationResult = await policeArticleValidator.ValidateAsync(article);
-
-            if (!validationResult.IsValid)
+            PoliceArticle article;
+            try
             {
-                invalid++;
-                var reasons = string.Join("; ", validationResult.Errors.Select(error => error.ErrorMessage));
-                logger.LogWarning("Skipping invalid Police article {OriginUrl}: {Reasons}", article.OriginUrl, reasons);
+                article = await policeArticlesRepository.GetArticleAsync(policeArticleLink.OriginUrl);
+                var validationResult = await policeArticleValidator.ValidateAsync(article);
+
+                if (!validationResult.IsValid)
+                {
+                    invalid++;
+                    var reasons = string.Join("; ", validationResult.Errors.Select(error => error.ErrorMessage));
+                    logger.LogWarning("Skipping invalid Police article {OriginUrl}: {Reasons}", policeArticleLink.OriginUrl, reasons);
+                    continue;
+                }
+            }
+            catch (Exception exception)
+            {
+                failed++;
+                logger.LogError(exception, "Police article detail failed for {OriginUrl}; continuing with other articles.", policeArticleLink.OriginUrl);
                 continue;
             }
 
@@ -75,7 +88,7 @@ public class PoliceArticleImportService(
             await unitOfWork.SaveChangesAsync();
         }
 
-        logger.LogInformation("Police article import finished since {Cutoff}: {Imported} imported, {Existing} existing, {Invalid} invalid, {OutsidePeriod} outside period.", cutoff, imported, existing, invalid, outsidePeriod);
+        logger.LogInformation("Police article import finished since {Cutoff}: {Imported} imported, {Existing} existing, {Invalid} invalid, {Failed} failed, {OutsidePeriod} outside period.", cutoff, imported, existing, invalid, failed, outsidePeriod);
     }
 
     private async Task<IReadOnlyList<PoliceArticleLink>> GetArticleLinksAsync(DateTime cutoff)

@@ -2,5 +2,5 @@ namespace PublicSafetyHub.Application.Services.Interfaces;
 
 public interface IArticleEmbeddingService
 {
-    Task GenerateMissingEmbeddingsAsync();
+    Task<int?> GenerateBatchAsync(int lastCheckedArticleId);
 }

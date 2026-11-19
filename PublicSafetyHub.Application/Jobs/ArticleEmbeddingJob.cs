@@ -69,9 +69,20 @@ public class ArticleEmbeddingJob(
     {
         try
         {
-            await using var scope = scopeFactory.CreateAsyncScope();
-            var articleEmbeddingService = scope.ServiceProvider.GetRequiredService<IArticleEmbeddingService>();
-            await articleEmbeddingService.GenerateMissingEmbeddingsAsync();
+            var lastCheckedArticleId = 0;
+            while (true)
+            {
+                await using var scope = scopeFactory.CreateAsyncScope();
+                var articleEmbeddingService = scope.ServiceProvider.GetRequiredService<IArticleEmbeddingService>();
+                var lastArticleIdInBatch = await articleEmbeddingService.GenerateBatchAsync(lastCheckedArticleId);
+
+                if (!lastArticleIdInBatch.HasValue)
+                {
+                    return;
+                }
+
+                lastCheckedArticleId = lastArticleIdInBatch.Value;
+            }
         }
         catch (Exception exception)
         {

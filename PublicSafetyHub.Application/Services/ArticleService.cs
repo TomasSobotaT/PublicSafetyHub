@@ -7,6 +7,7 @@ using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Results;
+using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Models.Articles;
@@ -17,7 +18,8 @@ public class ArticleService(
     IArticleRepository articleRepository,
     IMapper mapper,
     IValidator<PaginationRequest> paginationRequestValidator,
-    IEmbeddingService embeddingService) : IArticleService
+    IEmbeddingService embeddingService,
+    IOpenAiOptions openAiOptions) : IArticleService
 {
     public async Task<ApplicationResult<Article>> GetArticleByIdAsync(int id)
     {
@@ -44,6 +46,11 @@ public class ArticleService(
 
         if (specification.HasSearch && specification.SemanticSearch)
         {
+            if (string.IsNullOrWhiteSpace(openAiOptions.ApiKey) || string.IsNullOrWhiteSpace(openAiOptions.EmbeddingModel))
+            {
+                return ResultHelper.Unavailable("Semantic search is not configured.");
+            }
+
             var searchValue = specification.SearchValue.Trim();
 
             if (embeddingService.GetTokenCount(searchValue) > EmbeddingService.MaxInputTokens)
@@ -61,8 +68,6 @@ public class ArticleService(
             specification.QueryEmbedding = new Vector(vector);
         }
 
-        var articles = await articleRepository.GetPagedAsync(specification, filteredRequest);
-
-        return mapper.Map<PagedResult<Article>>(articles);
+        return await articleRepository.GetArticlesAsync(specification, filteredRequest);
     }
 }

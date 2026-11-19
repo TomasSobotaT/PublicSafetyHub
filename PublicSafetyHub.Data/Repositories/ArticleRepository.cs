@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Base.Filtering;
@@ -5,6 +6,7 @@ using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Specifications;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Models.Enums;
+using PublicSafetyHub.Models.Articles;
 using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Core.Specifications;
@@ -18,34 +20,48 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
     private const int ReciprocalRankConstant = 60;
     private const int SearchCandidateLimit = 100;
 
-    public override async Task<PagedResult<ArticleEntity>> GetPagedAsync(ISpecification<ArticleEntity> specification, PaginationRequest paginationRequest, bool asNoTracking = true, bool ignoreQueryFilters = false)
+    private static readonly Expression<Func<ArticleEntity, Article>> ArticleProjection = article => new Article
     {
-        if (specification is not ArticleSpecification articleSpecification || !articleSpecification.HasSearch)
-        {
-            return await base.GetPagedAsync(specification, paginationRequest, asNoTracking, ignoreQueryFilters);
-        }
+        Id = article.Id,
+        Title = article.Title,
+        Content = article.Content,
+        OriginUrl = article.OriginUrl,
+        Type = article.Type,
+        CreatedAt = article.CreatedAt,
+        PublishedAt = article.PublishedAt,
+        UpdatedAt = article.UpdatedAt
+    };
 
+    public async Task<PagedResult<Article>> GetArticlesAsync(ArticleSpecification specification, PaginationRequest paginationRequest)
+    {
+        ArgumentNullException.ThrowIfNull(specification);
+        ArgumentNullException.ThrowIfNull(paginationRequest);
         specification.ApplyPagination(paginationRequest);
 
-        var query = GetQueryable();
-
-        if (asNoTracking)
-        {
-            query = query.AsNoTracking();
-        }
-
-        if (ignoreQueryFilters)
-        {
-            query = query.IgnoreQueryFilters();
-        }
-
+        var query = GetQueryable().AsNoTracking();
         var filteredArticles = SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true);
-        var searchValue = articleSpecification.SearchValue.Trim();
+        if (!specification.HasSearch)
+        {
+            var totalCount = await filteredArticles.CountAsync();
+            var items = await SpecificationEvaluator.GetQuery(query, specification)
+                .Select(ArticleProjection)
+                .ToListAsync();
+
+            return new PagedResult<Article>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = specification.PageNumber.Value,
+                PageSize = specification.PageSize.Value
+            };
+        }
+
+        var searchValue = specification.SearchValue.Trim();
         List<int> fullTextArticleIds = [];
         List<int> semanticArticleIds = [];
 
 
-        if (articleSpecification.FullTextSearch)
+        if (specification.FullTextSearch)
         {
             var matches = filteredArticles
                 .Where(article => EF.Property<NpgsqlTsVector>(article, "SearchVector")
@@ -56,16 +72,16 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
                     .RankCoverDensity(EF.Functions.WebSearchToTsQuery("simple", searchValue)))
                 .ThenBy(article => article.Id);
 
-            if (!articleSpecification.SemanticSearch)
+            if (!specification.SemanticSearch)
             {
                 var totalCount = await matches.CountAsync();
                 var offset = checked((specification.PageNumber.Value - 1) * specification.PageSize.Value);
                 var pageQuery = ArticleSpecification.IsAllowedSort(paginationRequest.SortBy)
                     ? SpecificationEvaluator.GetQuery(matches, specification)
                     : rankedMatches.Skip(offset).Take(specification.PageSize.Value);
-                var items = await pageQuery.ToListAsync();
+                var items = await pageQuery.Select(ArticleProjection).ToListAsync();
 
-                return new PagedResult<ArticleEntity>
+                return new PagedResult<Article>
                 {
                     Items = items,
                     TotalCount = totalCount,
@@ -80,9 +96,9 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
                 .ToListAsync();
         }
 
-        if (articleSpecification.SemanticSearch)
+        if (specification.SemanticSearch)
         {
-            var queryEmbedding = articleSpecification.QueryEmbedding ?? throw new InvalidOperationException("Semantic search requires a query embedding.");
+            var queryEmbedding = specification.QueryEmbedding ?? throw new InvalidOperationException("Semantic search requires a query embedding.");
 
             var semanticMatches = filteredArticles.Where(article => article.Embedding != null);
 
@@ -97,7 +113,7 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
         }
 
         var rankedArticleIds = semanticArticleIds;
-        if (articleSpecification.FullTextSearch && articleSpecification.SemanticSearch)
+        if (specification.FullTextSearch && specification.SemanticSearch)
         {
             rankedArticleIds = [.. fullTextArticleIds
                 .Select((id, index) => new { Id = id, Score = 1.0 / (ReciprocalRankConstant + index + 1) })
@@ -108,24 +124,24 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
                 .Select(group => group.Key)];
         }
 
-        List<ArticleEntity> articleEntities;
+        List<Article> articles;
 
         if (ArticleSpecification.IsAllowedSort(paginationRequest.SortBy))
         {
             var matchingArticles = filteredArticles.Where(article => rankedArticleIds.Contains(article.Id));
-            articleEntities = await SpecificationEvaluator.GetQuery(matchingArticles, specification).ToListAsync();
+            articles = await SpecificationEvaluator.GetQuery(matchingArticles, specification).Select(ArticleProjection).ToListAsync();
         }
         else
         {
             var offset = checked((specification.PageNumber.Value - 1) * specification.PageSize.Value);
             var pageArticleIds = rankedArticleIds.Skip(offset).Take(specification.PageSize.Value).ToList();
-            var pageArticles = await filteredArticles.Where(article => pageArticleIds.Contains(article.Id)).ToDictionaryAsync(article => article.Id);
-            articleEntities = [.. pageArticleIds.Where(pageArticles.ContainsKey).Select(id => pageArticles[id])];
+            var pageArticles = await filteredArticles.Where(article => pageArticleIds.Contains(article.Id)).Select(ArticleProjection).ToDictionaryAsync(article => article.Id);
+            articles = [.. pageArticleIds.Where(pageArticles.ContainsKey).Select(id => pageArticles[id])];
         }
 
-        return new PagedResult<ArticleEntity>
+        return new PagedResult<Article>
         {
-            Items = articleEntities,
+            Items = articles,
             TotalCount = rankedArticleIds.Count,
             PageNumber = specification.PageNumber.Value,
             PageSize = specification.PageSize.Value

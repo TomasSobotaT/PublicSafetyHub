@@ -4,7 +4,7 @@ using PublicSafetyHub.AI.Services.Interfaces;
 
 namespace PublicSafetyHub.AI.Services;
 
-public class EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator, Tokenizer tokenizer) : IEmbeddingService
+public class EmbeddingService(Lazy<IEmbeddingGenerator<string, Embedding<float>>> embeddingGenerator, Lazy<Tokenizer> tokenizer) : IEmbeddingService
 {
     public const int Dimensions = 1536;
     public const int MaxInputTokens = 8191;
@@ -13,7 +13,7 @@ public class EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> embe
     public int GetTokenCount(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
-        return tokenizer.CountTokens(text);
+        return tokenizer.Value.CountTokens(text);
     }
 
     public async Task<float[]> GenerateAsync(string text)
@@ -36,7 +36,7 @@ public class EmbeddingService(IEmbeddingGenerator<string, Embedding<float>> embe
         var inputKeyValuePairs = textToEmbeddingDictionary.ToArray();
         var uniqueTexts = inputKeyValuePairs.Select(input => input.Value).Distinct(StringComparer.Ordinal).ToArray();
 
-        var embeddings = await embeddingGenerator.GenerateAndZipAsync(uniqueTexts, new EmbeddingGenerationOptions { Dimensions = Dimensions });
+        var embeddings = await embeddingGenerator.Value.GenerateAndZipAsync(uniqueTexts, new EmbeddingGenerationOptions { Dimensions = Dimensions });
         var vectorsByTextDictionary = new Dictionary<string, float[]>(StringComparer.Ordinal);
 
         foreach (var (text, embedding) in embeddings)
