@@ -10,7 +10,7 @@ namespace PublicSafetyHub.Core.Repositories;
 
 public interface IArticleRepository : IExtendedBaseRepository<ArticleEntity, int>
 {
-    Task<PagedResult<Article>> GetArticlesAsync(ArticleSpecification specification, PaginationRequest paginationRequest);
+    Task<PagedResult<Article>> SearchArticlesAsync(ArticleSpecification specification, PaginationRequest paginationRequest);
 
     Task<List<string>> GetExistingOriginUrlsAsync(IReadOnlyCollection<string> originUrls);
 

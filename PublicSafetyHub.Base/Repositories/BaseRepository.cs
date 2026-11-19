@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Entities.Base;
 using PublicSafetyHub.Base.Filtering;
@@ -39,10 +40,20 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
         return await query.ToListAsync();
     }
 
-    public virtual async Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest, bool asNoTracking = true, bool ignoreQueryFilters = false)
+    public virtual Task<PagedResult<TEntity>> GetPagedAsync(ISpecification<TEntity> specification, PaginationRequest paginationRequest, bool asNoTracking = true, bool ignoreQueryFilters = false)
+    {
+        return GetPagedAsync<TEntity>(specification, paginationRequest, asNoTracking: asNoTracking, ignoreQueryFilters: ignoreQueryFilters);
+    }
+
+    public virtual async Task<PagedResult<TResult>> GetPagedAsync<TResult>(ISpecification<TEntity> specification, PaginationRequest paginationRequest, Expression<Func<TEntity, TResult>> projection = null, bool asNoTracking = true, bool ignoreQueryFilters = false)
     {
         ArgumentNullException.ThrowIfNull(specification);
         ArgumentNullException.ThrowIfNull(paginationRequest);
+
+        if (projection is null && typeof(TResult) != typeof(TEntity))
+        {
+            throw new ArgumentException("A projection is required when the result type differs from the entity type.", nameof(projection));
+        }
 
         specification.ApplyPagination(paginationRequest);
 
@@ -55,12 +66,17 @@ public abstract class BaseRepository<TEntity, T>(DbContext dbContext) : IBaseRep
         }
 
         query = query.OrderBy(entity => entity.Id);
+
         var filteredQuery = SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true);
         var totalCount = await filteredQuery.CountAsync();
         var pagedQuery = ApplySpecification(query, specification);
-        var items = await pagedQuery.ToListAsync();
+        var resultQuery = projection is null
+            ? (IQueryable<TResult>)(object)pagedQuery
+            : pagedQuery.Select(projection);
 
-        return new PagedResult<TEntity>
+        var items = await resultQuery.ToListAsync();
+
+        return new PagedResult<TResult>
         {
             Items = items,
             TotalCount = totalCount,

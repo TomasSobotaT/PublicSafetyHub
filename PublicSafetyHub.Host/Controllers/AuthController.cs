@@ -1,7 +1,9 @@
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using OpenIddict.Server.AspNetCore;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Models.Auth.Requests;
@@ -38,7 +40,17 @@ public class AuthController(IAuthService authService, ITokenService tokenService
     [ProducesResponseType<OAuthErrorResponse>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> TokenAsync()
     {
-        return await tokenService.ExchangeAsync();
+        var result = await tokenService.ExchangeAsync();
+        if (result.IsSuccess)
+        {
+            return SignIn(result.Principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        return Forbid(new AuthenticationProperties(new Dictionary<string, string>
+        {
+            [OpenIddictServerAspNetCoreConstants.Properties.Error] = result.Error,
+            [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = result.ErrorDescription
+        }), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 
     [HttpPost("Logout")]

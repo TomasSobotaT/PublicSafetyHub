@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+using PublicSafetyHub.Core.Projections;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Base.Filtering;
@@ -20,42 +20,19 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
     private const int ReciprocalRankConstant = 60;
     private const int SearchCandidateLimit = 100;
 
-    private static readonly Expression<Func<ArticleEntity, Article>> ArticleProjection = article => new Article
-    {
-        Id = article.Id,
-        Title = article.Title,
-        Content = article.Content,
-        OriginUrl = article.OriginUrl,
-        Type = article.Type,
-        CreatedAt = article.CreatedAt,
-        PublishedAt = article.PublishedAt,
-        UpdatedAt = article.UpdatedAt
-    };
-
-    public async Task<PagedResult<Article>> GetArticlesAsync(ArticleSpecification specification, PaginationRequest paginationRequest)
+    public async Task<PagedResult<Article>> SearchArticlesAsync(ArticleSpecification specification, PaginationRequest paginationRequest)
     {
         ArgumentNullException.ThrowIfNull(specification);
         ArgumentNullException.ThrowIfNull(paginationRequest);
-        specification.ApplyPagination(paginationRequest);
 
-        var query = GetQueryable().AsNoTracking();
-        var filteredArticles = SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true);
         if (!specification.HasSearch)
         {
-            var totalCount = await filteredArticles.CountAsync();
-            var items = await SpecificationEvaluator.GetQuery(query, specification)
-                .Select(ArticleProjection)
-                .ToListAsync();
-
-            return new PagedResult<Article>
-            {
-                Items = items,
-                TotalCount = totalCount,
-                PageNumber = specification.PageNumber.Value,
-                PageSize = specification.PageSize.Value
-            };
+            throw new ArgumentException("Article search requires a search value and an enabled search mode.", nameof(specification));
         }
 
+        specification.ApplyPagination(paginationRequest);
+        var query = GetQueryable().AsNoTracking();
+        var filteredArticles = SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true);
         var searchValue = specification.SearchValue.Trim();
         List<int> fullTextArticleIds = [];
         List<int> semanticArticleIds = [];
@@ -79,7 +56,7 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
                 var pageQuery = ArticleSpecification.IsAllowedSort(paginationRequest.SortBy)
                     ? SpecificationEvaluator.GetQuery(matches, specification)
                     : rankedMatches.Skip(offset).Take(specification.PageSize.Value);
-                var items = await pageQuery.Select(ArticleProjection).ToListAsync();
+                var items = await pageQuery.Select(ArticleProjection.Project).ToListAsync();
 
                 return new PagedResult<Article>
                 {
@@ -129,13 +106,13 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
         if (ArticleSpecification.IsAllowedSort(paginationRequest.SortBy))
         {
             var matchingArticles = filteredArticles.Where(article => rankedArticleIds.Contains(article.Id));
-            articles = await SpecificationEvaluator.GetQuery(matchingArticles, specification).Select(ArticleProjection).ToListAsync();
+            articles = await SpecificationEvaluator.GetQuery(matchingArticles, specification).Select(ArticleProjection.Project).ToListAsync();
         }
         else
         {
             var offset = checked((specification.PageNumber.Value - 1) * specification.PageSize.Value);
             var pageArticleIds = rankedArticleIds.Skip(offset).Take(specification.PageSize.Value).ToList();
-            var pageArticles = await filteredArticles.Where(article => pageArticleIds.Contains(article.Id)).Select(ArticleProjection).ToDictionaryAsync(article => article.Id);
+            var pageArticles = await filteredArticles.Where(article => pageArticleIds.Contains(article.Id)).Select(ArticleProjection.Project).ToDictionaryAsync(article => article.Id);
             articles = [.. pageArticleIds.Where(pageArticles.ContainsKey).Select(id => pageArticles[id])];
         }
 

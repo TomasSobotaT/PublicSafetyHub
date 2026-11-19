@@ -10,6 +10,7 @@ using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Core.Repositories;
+using PublicSafetyHub.Core.Projections;
 using PublicSafetyHub.Models.Articles;
 
 namespace PublicSafetyHub.Application.Services;
@@ -68,6 +69,8 @@ public class ArticleService(
             specification.QueryEmbedding = new Vector(vector);
         }
 
-        return await articleRepository.GetArticlesAsync(specification, filteredRequest);
+        return specification.HasSearch
+            ? await articleRepository.SearchArticlesAsync(specification, filteredRequest)
+            : await articleRepository.GetPagedAsync(specification, filteredRequest, projection: ArticleProjection.Project);
     }
 }

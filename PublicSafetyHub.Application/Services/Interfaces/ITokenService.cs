@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
+using PublicSafetyHub.Core.Models;
 
 namespace PublicSafetyHub.Application.Services.Interfaces;
 
 public interface ITokenService
 {
-    Task<IActionResult> ExchangeAsync();
+    Task<TokenExchangeResult> ExchangeAsync();
 }
