@@ -1,33 +1,46 @@
 using PublicSafetyHub.Host.BuilderExtensions;
-using PublicSafetyHub.Data.Context;
-using PublicSafetyHub.Host.Authentication;
+using PublicSafetyHub.Host.Logging;
+using PublicSafetyHub.Host.Middlewares;
+using Serilog;
+using Serilog.Debugging;
 
-var builder = WebApplication.CreateBuilder(args);
+BootstrapLogging.Initialize();
 
-builder.Services.AddControllers();
-builder.Services.AddOpenApiRegistration();
-builder.Services.AddDatabase(builder.Configuration);
-builder.Services.AddDependencyInjectionRegistration(builder.Configuration);
-builder.Services.AddHttpClientRegistration();
-builder.Services.AddAuthRegistration();
-builder.Services.AddAiRegistration();
-
-var app = builder.Build();
-
-if (app.Environment.IsDevelopment() && app.Configuration.GetValue<bool>("DevelopmentDatabase:Enabled"))
+try
 {
-    await using var scope = app.Services.CreateAsyncScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<PublicSafetyHubDbContext>();
-    await dbContext.Database.EnsureDeletedAsync();
-    await dbContext.Database.EnsureCreatedAsync();
-}
+    var builder = WebApplication.CreateBuilder(args);
 
-app.UseRouting();
-app.UseRateLimiter();
-app.UseMiddleware<AuthorizationLoginMiddleware>();
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseOpenApi();
-app.MapControllers();
-app.Run();
+    builder.AddPostgreSqlLogging();
+    builder.Services.AddGlobalExceptionHandling();
+    builder.Services.AddControllers();
+    builder.Services.AddOpenApiRegistration();
+    builder.Services.AddDatabase(builder.Configuration);
+    builder.Services.AddDependencyInjectionRegistration(builder.Configuration);
+    builder.Services.AddHttpClientRegistration();
+    builder.Services.AddAuthRegistration();
+    builder.Services.AddAiRegistration();
+
+    var app = builder.Build();
+
+    app.UseExceptionHandler();
+    app.UseRouting();
+    app.UseRateLimiter();
+    app.UseMiddleware<AuthorizationLoginMiddleware>();
+    app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseOpenApi();
+    app.MapControllers();
+
+    await app.RunAsync();
+}
+catch (Exception exception)
+{
+    Log.Fatal(exception, "Application terminated unexpectedly.");
+    Environment.ExitCode = 1;
+}
+finally
+{
+    await Log.CloseAndFlushAsync();
+    SelfLog.Disable();
+}

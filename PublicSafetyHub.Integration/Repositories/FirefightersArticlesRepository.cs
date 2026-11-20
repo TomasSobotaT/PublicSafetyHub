@@ -6,9 +6,9 @@ using MailKit.Search;
 using MailKit.Security;
 using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Core.Helpers;
-using PublicSafetyHub.Core.Repositories.Integration;
+using PublicSafetyHub.Integration.Repositories.Interfaces;
 using PublicSafetyHub.Integration.Clients;
-using PublicSafetyHub.Models.Articles;
+using PublicSafetyHub.Integration.IntegrationModels;
 
 namespace PublicSafetyHub.Integration.Repositories;
 

@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using Pgvector;
 using PublicSafetyHub.Base.Specifications;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Models.Enums;
+using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Core.Specifications;
 

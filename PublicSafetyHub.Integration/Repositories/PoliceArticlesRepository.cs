@@ -3,8 +3,8 @@ using System.Net;
 using HtmlAgilityPack;
 using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Core.Helpers;
-using PublicSafetyHub.Models.Articles;
-using PublicSafetyHub.Core.Repositories.Integration;
+using PublicSafetyHub.Integration.IntegrationModels;
+using PublicSafetyHub.Integration.Repositories.Interfaces;
 using PublicSafetyHub.Integration.Clients;
 
 namespace PublicSafetyHub.Integration.Repositories;

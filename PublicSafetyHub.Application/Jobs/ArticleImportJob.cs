@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Core.Configurations;
-using PublicSafetyHub.Models.Enums;
+using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Application.Jobs;
 
@@ -70,6 +70,12 @@ public class ArticleImportJob(
 
     private async Task ImportAsync<TService>(ArticleType source) where TService : class, IArticleImportService
     {
+        using var logScope = logger.BeginScope(new Dictionary<string, object>
+        {
+            ["ImportRunId"] = Guid.NewGuid().ToString("N"),
+            ["Source"] = source.ToString()
+        });
+
         try
         {
             await using var scope = scopeFactory.CreateAsyncScope();

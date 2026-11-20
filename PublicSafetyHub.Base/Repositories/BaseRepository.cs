@@ -1,8 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Entities.Base;
-using PublicSafetyHub.Base.Extensions.Filtering;
-using PublicSafetyHub.Base.Pagination;
+using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Specifications;
 
 namespace PublicSafetyHub.Base.Repositories;

@@ -1,6 +1,6 @@
 using Pgvector;
 using PublicSafetyHub.Base.Entities.Base;
-using PublicSafetyHub.Models.Enums;
+using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Core.Entities;
 

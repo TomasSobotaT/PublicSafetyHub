@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using PublicSafetyHub.Base.Extensions.Filtering;
+using PublicSafetyHub.Base.Filtering;
 
 namespace PublicSafetyHub.Base.Specifications;
 

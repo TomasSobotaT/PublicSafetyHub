@@ -1,4 +1,4 @@
-using PublicSafetyHub.Models.Enums;
+using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Models.Articles;
 

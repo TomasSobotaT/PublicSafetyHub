@@ -15,6 +15,8 @@ public interface IPublicSafetyHubDbContext
 
     DbSet<ArticleEntity> Articles { get; }
 
+    DbSet<LogEntity> Logs { get; }
+
     DbSet<TEntity> Set<TEntity>() where TEntity : class;
 
     int SaveChanges();

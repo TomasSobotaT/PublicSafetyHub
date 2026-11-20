@@ -67,6 +67,11 @@ public class ArticleEmbeddingJob(
 
     private async Task GenerateMissingEmbeddingsAsync()
     {
+        using var logScope = logger.BeginScope(new Dictionary<string, object>
+        {
+            ["EmbeddingRunId"] = Guid.NewGuid().ToString("N")
+        });
+
         try
         {
             var lastCheckedArticleId = 0;

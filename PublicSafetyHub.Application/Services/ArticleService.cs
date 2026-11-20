@@ -4,14 +4,13 @@ using Pgvector;
 using PublicSafetyHub.AI.Services;
 using PublicSafetyHub.AI.Services.Interfaces;
 using PublicSafetyHub.Application.Services.Interfaces;
-using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Core.Repositories;
-using PublicSafetyHub.Core.Projections;
+using PublicSafetyHub.Application.Projections;
 using PublicSafetyHub.Models.Articles;
-using PublicSafetyHub.Base.Extensions.Filtering;
+using PublicSafetyHub.Base.Filtering;
 
 namespace PublicSafetyHub.Application.Services;
 
@@ -70,7 +69,7 @@ public class ArticleService(
         }
 
         return specification.HasSearch
-            ? await articleRepository.SearchArticlesAsync(specification, filteredRequest)
+            ? await articleRepository.SearchArticlesAsync(specification, filteredRequest, ArticleProjection.Project, article => article.Id)
             : await articleRepository.GetPagedAsync(specification, filteredRequest, projection: ArticleProjection.Project);
     }
 }

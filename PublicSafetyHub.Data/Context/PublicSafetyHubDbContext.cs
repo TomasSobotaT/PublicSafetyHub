@@ -11,6 +11,8 @@ public class PublicSafetyHubDbContext(DbContextOptions<PublicSafetyHubDbContext>
 {
     public DbSet<ArticleEntity> Articles { get; set; }
 
+    public DbSet<LogEntity> Logs { get; set; }
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         base.ConfigureConventions(configurationBuilder);

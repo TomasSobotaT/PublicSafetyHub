@@ -3,10 +3,10 @@ using Microsoft.Extensions.Logging;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Models.Enums;
+using PublicSafetyHub.Core.Enums;
 using PublicSafetyHub.Core.Repositories;
-using PublicSafetyHub.Core.Repositories.Integration;
-using PublicSafetyHub.Models.Articles;
+using PublicSafetyHub.Integration.Repositories.Interfaces;
+using PublicSafetyHub.Integration.IntegrationModels;
 
 namespace PublicSafetyHub.Application.Services;
 

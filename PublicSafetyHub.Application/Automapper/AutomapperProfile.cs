@@ -1,9 +1,10 @@
 using AutoMapper;
-using PublicSafetyHub.Base.Pagination;
+using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Models.Articles;
 using PublicSafetyHub.Models.Auth.Responses;
+using PublicSafetyHub.Models.Logging;
 
 namespace PublicSafetyHub.Application.Automapper;
 
@@ -16,5 +17,6 @@ public class AutomapperProfile : Profile
         CreateMap<ArticleFilter, ArticleSpecification>()
             .ForMember(destination => destination.QueryEmbedding, options => options.Ignore());
         CreateMap<UserEntity, User>();
+        CreateMap<LogFilter, LogSpecification>();
     }
 }

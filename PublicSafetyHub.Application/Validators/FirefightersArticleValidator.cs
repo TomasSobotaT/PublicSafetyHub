@@ -1,5 +1,5 @@
-﻿using FluentValidation;
-using PublicSafetyHub.Models.Articles;
+using FluentValidation;
+using PublicSafetyHub.Integration.IntegrationModels;
 
 namespace PublicSafetyHub.Application.Validators;
 

@@ -12,7 +12,7 @@ using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Data.Repositories;
 using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Data.Context;
-using PublicSafetyHub.Core.Repositories.Integration;
+using PublicSafetyHub.Integration.Repositories.Interfaces;
 using PublicSafetyHub.Integration.Repositories;
 using PublicSafetyHub.Application.Automapper;
 
@@ -40,6 +40,7 @@ public static class DependencyInjectionExtension
             services.TryAddScoped<IHttpUserContext, HttpUserContext>();
             services.TryAddScoped<IAuthService, AuthService>();
             services.TryAddScoped<IArticleService, ArticleService>();
+            services.TryAddScoped<ILogReadService, LogReadService>();
             services.TryAddScoped<IArticleEmbeddingService, ArticleEmbeddingService>();
             services.TryAddScoped<IArmyArticleImportService, ArmyArticleImportService>();
             services.TryAddScoped<IPoliceArticleImportService, PoliceArticleImportService>();
@@ -51,6 +52,7 @@ public static class DependencyInjectionExtension
         {
             services.TryAddScoped<IUserRepository, UserRepository>();
             services.TryAddScoped<IArticleRepository, ArticleRepository>();
+            services.TryAddScoped<ILogRepository, LogRepository>();
             services.TryAddScoped<IArmyArticlesRepository, ArmyArticlesRepository>();
             services.TryAddScoped<IPoliceArticlesRepository, PoliceArticlesRepository>();
             services.TryAddScoped<IFirefightersArticlesRepository, FirefightersArticlesRepository>();

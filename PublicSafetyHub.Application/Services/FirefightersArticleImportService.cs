@@ -5,9 +5,9 @@ using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Core.Repositories;
-using PublicSafetyHub.Core.Repositories.Integration;
-using PublicSafetyHub.Models.Articles;
-using PublicSafetyHub.Models.Enums;
+using PublicSafetyHub.Integration.Repositories.Interfaces;
+using PublicSafetyHub.Integration.IntegrationModels;
+using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Application.Services;
 

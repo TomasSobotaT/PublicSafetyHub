@@ -1,4 +1,4 @@
-using PublicSafetyHub.Models.Articles;
+using PublicSafetyHub.Integration.IntegrationModels;
 
 namespace PublicSafetyHub.Application.Services.Interfaces;
 

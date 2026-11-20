@@ -9,7 +9,7 @@ using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Core.Helpers;
 using PublicSafetyHub.Data.Context;
-using PublicSafetyHub.Host.Authentication;
+using PublicSafetyHub.Host.Middlewares;
 using PublicSafetyHub.Application.Services;
 using PublicSafetyHub.Application.Services.Interfaces;
 

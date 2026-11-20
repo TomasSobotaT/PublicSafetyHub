@@ -1,16 +1,16 @@
 using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Models.Enums;
-using PublicSafetyHub.Base.Pagination;
+using PublicSafetyHub.Core.Enums;
 using PublicSafetyHub.Core.Specifications;
-using PublicSafetyHub.Models.Articles;
-using PublicSafetyHub.Base.Extensions.Filtering;
+using System.Linq.Expressions;
+using PublicSafetyHub.Base.Filtering;
 
 namespace PublicSafetyHub.Core.Repositories;
 
 public interface IArticleRepository : IExtendedBaseRepository<ArticleEntity, int>
 {
-    Task<PagedResult<Article>> SearchArticlesAsync(ArticleSpecification specification, PaginationRequest paginationRequest);
+    Task<PagedResult<TResult>> SearchArticlesAsync<TResult>(ArticleSpecification specification, PaginationRequest paginationRequest,
+        Expression<Func<ArticleEntity, TResult>> projection, Func<TResult, int> idSelector);
 
     Task<List<string>> GetExistingOriginUrlsAsync(IReadOnlyCollection<string> originUrls);
 

@@ -2,8 +2,7 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PublicSafetyHub.Application.Services.Interfaces;
-using PublicSafetyHub.Base.Extensions.Filtering;
-using PublicSafetyHub.Base.Pagination;
+using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Models.Articles;
 

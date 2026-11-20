@@ -1,17 +1,16 @@
-using PublicSafetyHub.Core.Projections;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Repositories;
-using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Specifications;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Models.Enums;
-using PublicSafetyHub.Models.Articles;
+using PublicSafetyHub.Core.Enums;
+
 using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Core.Specifications;
 using NpgsqlTypes;
 using Pgvector.EntityFrameworkCore;
-using PublicSafetyHub.Base.Extensions.Filtering;
+using PublicSafetyHub.Base.Filtering;
 
 namespace PublicSafetyHub.Data.Repositories;
 
@@ -20,10 +19,12 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
     private const int ReciprocalRankConstant = 60;
     private const int SearchCandidateLimit = 100;
 
-    public async Task<PagedResult<Article>> SearchArticlesAsync(ArticleSpecification specification, PaginationRequest paginationRequest)
+    public async Task<PagedResult<TResult>> SearchArticlesAsync<TResult>(ArticleSpecification specification, PaginationRequest paginationRequest, Expression<Func<ArticleEntity, TResult>> projection, Func<TResult, int> idSelector)
     {
         ArgumentNullException.ThrowIfNull(specification);
         ArgumentNullException.ThrowIfNull(paginationRequest);
+        ArgumentNullException.ThrowIfNull(projection);
+        ArgumentNullException.ThrowIfNull(idSelector);
 
         if (!specification.HasSearch)
         {
@@ -56,9 +57,9 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
                 var pageQuery = ArticleSpecification.IsAllowedSort(paginationRequest.SortBy)
                     ? SpecificationEvaluator.GetQuery(matches, specification)
                     : rankedMatches.Skip(offset).Take(specification.PageSize.Value);
-                var items = await pageQuery.Select(ArticleProjection.Project).ToListAsync();
+                var items = await pageQuery.Select(projection).ToListAsync();
 
-                return new PagedResult<Article>
+                return new PagedResult<TResult>
                 {
                     Items = items,
                     TotalCount = totalCount,
@@ -101,22 +102,22 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
                 .Select(group => group.Key)];
         }
 
-        List<Article> articles;
+        List<TResult> articles;
 
         if (ArticleSpecification.IsAllowedSort(paginationRequest.SortBy))
         {
             var matchingArticles = filteredArticles.Where(article => rankedArticleIds.Contains(article.Id));
-            articles = await SpecificationEvaluator.GetQuery(matchingArticles, specification).Select(ArticleProjection.Project).ToListAsync();
+            articles = await SpecificationEvaluator.GetQuery(matchingArticles, specification).Select(projection).ToListAsync();
         }
         else
         {
             var offset = checked((specification.PageNumber.Value - 1) * specification.PageSize.Value);
             var pageArticleIds = rankedArticleIds.Skip(offset).Take(specification.PageSize.Value).ToList();
-            var pageArticles = await filteredArticles.Where(article => pageArticleIds.Contains(article.Id)).Select(ArticleProjection.Project).ToDictionaryAsync(article => article.Id);
+            var pageArticles = await filteredArticles.Where(article => pageArticleIds.Contains(article.Id)).Select(projection).ToDictionaryAsync(idSelector);
             articles = [.. pageArticleIds.Where(pageArticles.ContainsKey).Select(id => pageArticles[id])];
         }
 
-        return new PagedResult<Article>
+        return new PagedResult<TResult>
         {
             Items = articles,
             TotalCount = rankedArticleIds.Count,
