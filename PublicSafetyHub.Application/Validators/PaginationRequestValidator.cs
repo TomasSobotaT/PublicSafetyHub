@@ -1,5 +1,5 @@
 using FluentValidation;
-using PublicSafetyHub.Base.Filtering;
+using PublicSafetyHub.Base.Extensions.Filtering;
 
 namespace PublicSafetyHub.Application.Validators;
 

@@ -7,7 +7,6 @@ using OpenIddict.Abstractions;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Core.Models;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Base.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
@@ -120,7 +119,7 @@ public class AuthService(
             return ResultHelper.Unavailable("Authorization is temporarily unavailable. Please try again later.");
         }
 
-        return AuthorizationFlowResult.Interaction(new AuthorizationTransactionResponse { TransactionId = id });
+        return AuthorizationFlowResult.Interaction(id);
     }
 
     private async Task<ApplicationResult<User>> RegisterUserAsync(RegisterUserRequest registerUserRequest)

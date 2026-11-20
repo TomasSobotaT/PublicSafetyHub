@@ -1,6 +1,5 @@
 namespace PublicSafetyHub.Base.Auth;
 
-// Kept only for the current request. Do not generate a ToString containing credentials.
 public sealed class AuthorizationLoginSubmission(string intent, string email, string password, string confirmPassword)
 {
     public string Intent { get; } = intent;

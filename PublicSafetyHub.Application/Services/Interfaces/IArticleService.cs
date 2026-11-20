@@ -1,4 +1,4 @@
-using PublicSafetyHub.Base.Filtering;
+using PublicSafetyHub.Base.Extensions.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Models.Articles;

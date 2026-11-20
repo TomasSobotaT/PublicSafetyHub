@@ -4,7 +4,6 @@ using Pgvector;
 using PublicSafetyHub.AI.Services;
 using PublicSafetyHub.AI.Services.Interfaces;
 using PublicSafetyHub.Application.Services.Interfaces;
-using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Core.Configurations;
@@ -12,6 +11,7 @@ using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Core.Projections;
 using PublicSafetyHub.Models.Articles;
+using PublicSafetyHub.Base.Extensions.Filtering;
 
 namespace PublicSafetyHub.Application.Services;
 

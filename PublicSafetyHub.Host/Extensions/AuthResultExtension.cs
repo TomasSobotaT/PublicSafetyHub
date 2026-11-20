@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Server.AspNetCore;
 using PublicSafetyHub.Base.Results;
-using PublicSafetyHub.Core.Models;
+using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Models.Auth.Responses;
 
 namespace PublicSafetyHub.Host.Extensions;
@@ -33,7 +33,10 @@ public static class AuthResultExtension
                 return CreateProtocolResponse(authorization.Principal, authorization.Error, authorization.ErrorDescription);
             }
 
-            ApplicationResult<AuthorizationTransactionResponse> transaction = authorization.Transaction;
+            ApplicationResult<AuthorizationTransactionResponse> transaction = new AuthorizationTransactionResponse
+            {
+                TransactionId = authorization.TransactionId
+            };
             return transaction.ToActionResult();
         }
     }

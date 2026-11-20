@@ -1,7 +1,6 @@
 using PublicSafetyHub.Core.Projections;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Base.Repositories;
-using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Specifications;
 using PublicSafetyHub.Core.Entities;
@@ -12,6 +11,7 @@ using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Core.Specifications;
 using NpgsqlTypes;
 using Pgvector.EntityFrameworkCore;
+using PublicSafetyHub.Base.Extensions.Filtering;
 
 namespace PublicSafetyHub.Data.Repositories;
 

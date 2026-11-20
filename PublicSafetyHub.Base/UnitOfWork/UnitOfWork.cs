@@ -1,10 +1,9 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using PublicSafetyHub.Base.UnitOfWork;
-using PublicSafetyHub.Data.Context;
 
-namespace PublicSafetyHub.Data.UnitOfWork;
+namespace PublicSafetyHub.Base.UnitOfWork;
 
-public class UnitOfWork(IPublicSafetyHubDbContext dbContext) : IUnitOfWork
+public class UnitOfWork(DbContext dbContext) : IUnitOfWork
 {
     private IDbContextTransaction transaction;
 

@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using PublicSafetyHub.Base.Entities.Base;
-using PublicSafetyHub.Base.Filtering;
+using PublicSafetyHub.Base.Extensions.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Base.Specifications;
 

@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
 using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Core.Helpers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace PublicSafetyHub.Application.Services;
@@ -10,7 +11,7 @@ public class AuthClientInitializer(IServiceScopeFactory scopeFactory, IAuthOptio
 {
     public async Task StartAsync(CancellationToken _)
     {
-        AuthConfiguration.Validate(options);
+        AuthConfigurationHelper.Validate(options);
         using var scope = scopeFactory.CreateScope();
         var openIddictApplicationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 

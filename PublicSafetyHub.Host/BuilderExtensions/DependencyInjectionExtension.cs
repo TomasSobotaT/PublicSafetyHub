@@ -11,7 +11,7 @@ using PublicSafetyHub.Base.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Data.Repositories;
 using PublicSafetyHub.Core.Repositories;
-using PublicSafetyHub.Data.UnitOfWork;
+using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Core.Repositories.Integration;
 using PublicSafetyHub.Integration.Repositories;
 using PublicSafetyHub.Application.Automapper;
@@ -54,7 +54,7 @@ public static class DependencyInjectionExtension
             services.TryAddScoped<IArmyArticlesRepository, ArmyArticlesRepository>();
             services.TryAddScoped<IPoliceArticlesRepository, PoliceArticlesRepository>();
             services.TryAddScoped<IFirefightersArticlesRepository, FirefightersArticlesRepository>();
-            services.TryAddScoped<IUnitOfWork, UnitOfWork>();
+            services.TryAddScoped<IUnitOfWork>(provider => new UnitOfWork(provider.GetRequiredService<PublicSafetyHubDbContext>()));
         }
 
         private void RegisterValidators()

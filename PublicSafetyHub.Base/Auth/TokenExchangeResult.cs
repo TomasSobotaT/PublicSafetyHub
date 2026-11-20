@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PublicSafetyHub.Core.Models;
+namespace PublicSafetyHub.Base.Auth;
 
 public class TokenExchangeResult
 {

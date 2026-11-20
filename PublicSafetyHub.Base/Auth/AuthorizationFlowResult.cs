@@ -1,24 +1,23 @@
 using System.Security.Claims;
-using PublicSafetyHub.Models.Auth.Responses;
 
-namespace PublicSafetyHub.Core.Models;
+namespace PublicSafetyHub.Base.Auth;
 
 public class AuthorizationFlowResult
 {
-    private AuthorizationFlowResult(ClaimsPrincipal principal, string error, string errorDescription, AuthorizationTransactionResponse transaction)
+    private AuthorizationFlowResult(ClaimsPrincipal principal, string error, string errorDescription, string transactionId)
     {
         Principal = principal;
         Error = error;
         ErrorDescription = errorDescription;
-        Transaction = transaction;
+        TransactionId = transactionId;
     }
 
     public ClaimsPrincipal Principal { get; }
     public string Error { get; }
     public string ErrorDescription { get; }
-    public AuthorizationTransactionResponse Transaction { get; }
+    public string TransactionId { get; }
 
-    public static AuthorizationFlowResult Interaction(AuthorizationTransactionResponse transaction) => new(null, null, null, transaction);
+    public static AuthorizationFlowResult Interaction(string transactionId) => new(null, null, null, transactionId);
     public static AuthorizationFlowResult Success(ClaimsPrincipal principal) => new(principal, null, null, null);
     public static AuthorizationFlowResult Failure(string error, string description) => new(null, error, description, null);
 }

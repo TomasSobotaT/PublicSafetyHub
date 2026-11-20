@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Models.Auth.Requests;
-using PublicSafetyHub.Core.Models;
+using PublicSafetyHub.Base.Auth;
 
 namespace PublicSafetyHub.Application.Services.Interfaces;
 

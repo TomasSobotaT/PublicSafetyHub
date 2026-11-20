@@ -29,6 +29,7 @@ public sealed class AuthorizationLoginMiddleware(IAuthTransactionService authTra
 
         var issuerOrigin = new Uri(options.Issuer).GetLeftPart(UriPartial.Authority);
         var requestOrigin = $"{request.Scheme}://{request.Host}";
+
         if (!request.IsHttps || !string.Equals(requestOrigin, issuerOrigin, StringComparison.Ordinal))
         {
             await RejectAsync(context, ResultHelper.Validation("Invalid authorization request."));
@@ -41,8 +42,8 @@ public sealed class AuthorizationLoginMiddleware(IAuthTransactionService authTra
             return;
         }
 
-        // This check protects the password POST; initial cross-origin GET navigation is allowed.
         var origin = request.Headers.Origin;
+
         if (origin.Count != 1 || !string.Equals(origin[0], issuerOrigin, StringComparison.Ordinal))
         {
             await RejectAsync(context, ResultHelper.Forbidden("Invalid request origin."));
@@ -63,6 +64,7 @@ public sealed class AuthorizationLoginMiddleware(IAuthTransactionService authTra
         }
 
         IFormCollection form;
+
         try
         {
             form = await request.ReadFormAsync();
@@ -73,9 +75,7 @@ public sealed class AuthorizationLoginMiddleware(IAuthTransactionService authTra
             return;
         }
 
-        // No client-supplied OAuth parameters, query overrides or duplicate fields are accepted.
-        if (form.Files.Count != 0 || form.Any(field => field.Value.Count != 1) || !HasExpectedFields(form) ||
-            !authTransactions.TryConsumeTransaction(form["transaction_id"].ToString(), out var originalRequest))
+        if (form.Files.Count != 0 || form.Any(field => field.Value.Count != 1) || !HasExpectedFields(form) || !authTransactions.TryConsumeTransaction(form["transaction_id"].ToString(), out var originalRequest))
         {
             await RejectAsync(context, ResultHelper.Validation("Invalid or expired authorization transaction. Start authorization again."));
             return;
@@ -84,10 +84,8 @@ public sealed class AuthorizationLoginMiddleware(IAuthTransactionService authTra
         var submission = new AuthorizationLoginSubmission(form["intent"].ToString(), form["email"].ToString(),
             form["password"].ToString(), form["confirm_password"].ToString());
         context.Items[typeof(AuthorizationLoginSubmission)] = submission;
-        // OpenIddict extracts and validates the original protocol request, including nonce,
-        // state, redirect URI and PKCE. Credentials never become OpenIddict parameters.
-        request.Form = new FormCollection(originalRequest.GetParameters().ToDictionary(
-            parameter => parameter.Key, parameter => (StringValues)parameter.Value, StringComparer.Ordinal));
+        request.Form = new FormCollection(originalRequest.GetParameters().ToDictionary(parameter => parameter.Key, parameter => (StringValues)parameter.Value, StringComparer.Ordinal));
+
         try
         {
             await next(context);

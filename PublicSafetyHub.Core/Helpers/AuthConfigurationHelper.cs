@@ -1,6 +1,8 @@
-namespace PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.Auth;
 
-public static class AuthConfiguration
+namespace PublicSafetyHub.Core.Helpers;
+
+public static class AuthConfigurationHelper
 {
     public static void Validate(IAuthOptions options)
     {

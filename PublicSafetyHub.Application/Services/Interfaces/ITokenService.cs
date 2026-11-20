@@ -1,4 +1,4 @@
-using PublicSafetyHub.Core.Models;
+using PublicSafetyHub.Base.Auth;
 
 namespace PublicSafetyHub.Application.Services.Interfaces;
 

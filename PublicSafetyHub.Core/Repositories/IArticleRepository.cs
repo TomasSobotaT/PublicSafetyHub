@@ -1,10 +1,10 @@
 using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Models.Enums;
-using PublicSafetyHub.Base.Filtering;
 using PublicSafetyHub.Base.Pagination;
 using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Models.Articles;
+using PublicSafetyHub.Base.Extensions.Filtering;
 
 namespace PublicSafetyHub.Core.Repositories;
 

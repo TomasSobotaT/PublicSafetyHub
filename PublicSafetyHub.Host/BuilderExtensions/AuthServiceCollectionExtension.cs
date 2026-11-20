@@ -7,6 +7,7 @@ using OpenIddict.Validation.AspNetCore;
 using OpenIddict.Abstractions;
 using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Core.Entities;
+using PublicSafetyHub.Core.Helpers;
 using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Host.Authentication;
 using PublicSafetyHub.Application.Services;
@@ -76,7 +77,7 @@ public static class AuthServiceCollectionExtension
             services.AddOptions<OpenIddict.Server.OpenIddictServerOptions>()
                 .Configure<IAuthOptions>((serverOptions, authOptions) =>
                 {
-                    AuthConfiguration.Validate(authOptions);
+                    AuthConfigurationHelper.Validate(authOptions);
 
                     if (authOptions.AccessTokenMinutes is <= 0 or > 60 || authOptions.RefreshTokenDays is <= 0 or > 90)
                     {

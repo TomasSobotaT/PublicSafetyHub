@@ -1,4 +1,3 @@
-using PublicSafetyHub.Core.Models;
 using OpenIddict.Abstractions;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Auth;
