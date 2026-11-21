@@ -68,7 +68,7 @@ public static class DependencyInjectionExtension
 
         private void RegisterMappings()
         {
-            services.AddAutoMapper(typeof(AutomapperProfile));
+            services.AddAutoMapper(_ => { }, typeof(AutomapperProfile));
         }
 
         private void RegisterHostedServices()

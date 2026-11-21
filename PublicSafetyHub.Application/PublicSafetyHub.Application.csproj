@@ -7,7 +7,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="FluentValidation" Version="12.2.0" />
-    <PackageReference Include="AutoMapper" Version="14.0.0" />
+    <PackageReference Include="AutoMapper" Version="17.0.0" />
     <PackageReference Include="OpenIddict.Server.AspNetCore" Version="7.9.0" />
     <ProjectReference Include="..\PublicSafetyHub.AI\PublicSafetyHub.AI.csproj" />
     <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />

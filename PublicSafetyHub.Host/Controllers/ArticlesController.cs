@@ -21,7 +21,6 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
     public async Task<IActionResult> GetArticleByIdAsync(int id)
     {
         var result = await articleService.GetArticleByIdAsync(id);
-
         return result.ToActionResult();
     }
 
@@ -31,7 +30,6 @@ public class ArticlesController(IArticleService articleService) : ControllerBase
     public async Task<IActionResult> GetArticlesAsync([FromQuery] FilteredRequest<ArticleFilter> filteredRequest)
     {
         var result = await articleService.GetArticlesAsync(filteredRequest);
-
         return result.ToActionResult();
     }
 }

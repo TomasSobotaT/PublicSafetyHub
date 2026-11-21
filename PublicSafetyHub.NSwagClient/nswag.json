@@ -21,7 +21,7 @@
       "responseArrayType": "System.Collections.Generic.List",
       "arrayType": "System.Collections.Generic.List",
       "generateNullableReferenceTypes": false,
-      "output": "Generated/PublicSafetyHubClient.g.cs"
+      "output": "/PublicSafetyHubClient.g.cs"
     }
   }
 }
