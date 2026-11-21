@@ -15,7 +15,6 @@ using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Integration.Repositories.Interfaces;
 using PublicSafetyHub.Integration.Repositories;
-using PublicSafetyHub.Application.Automapper;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 

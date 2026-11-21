@@ -10,5 +10,5 @@ public interface IUserService
 
     Task<ApplicationResult<NoValueResult>> BlockUserAsync(int id, BlockUserRequest request);
 
-    Task<ApplicationResult<NoValueResult>> DeleteAsync(int id);
+    Task<ApplicationResult<NoValueResult>> DeleteUserAsync(int id);
 }

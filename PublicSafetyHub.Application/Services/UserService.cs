@@ -51,12 +51,17 @@ public class UserService(
 
     public Task<ApplicationResult<NoValueResult>> BlockUserAsync(int id, BlockUserRequest request)
     {
-        return ChangeUserStateAsync(id, request.IsBlocked, false);
+        if (request.IsBlocked is null)
+        {
+            ResultHelper.Validation("IsBlocked value must be provided.");
+        }
+
+        return ChangeUserStateAsync(id, isBlocked: request.IsBlocked.Value, delete: false);
     }
 
-    public Task<ApplicationResult<NoValueResult>> DeleteAsync(int id)
+    public Task<ApplicationResult<NoValueResult>> DeleteUserAsync(int id)
     {
-        return ChangeUserStateAsync(id, false, true);
+        return ChangeUserStateAsync(id, isBlocked: false, delete: true);
     }
 
     private async Task<ApplicationResult<NoValueResult>> ChangeUserStateAsync(int id, bool isBlocked, bool delete)

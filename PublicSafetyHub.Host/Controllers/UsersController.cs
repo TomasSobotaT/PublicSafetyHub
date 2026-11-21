@@ -37,9 +37,9 @@ public class UsersController(IUserService userService) : ControllerBase
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteAsync(int id)
+    public async Task<IActionResult> DeleteUserAsync(int id)
     {
-        var result = await userService.DeleteAsync(id);
+        var result = await userService.DeleteUserAsync(id);
         return result.ToActionResult();
     }
 }
