@@ -8,7 +8,7 @@ using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Base.Results;
-using PublicSafetyHub.Base.UserContext;
+using PublicSafetyHub.Application.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Models.Auth.Requests;
@@ -26,7 +26,7 @@ public class AuthService(
     IOpenIddictApplicationManager applicationManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IOpenIddictTokenManager tokenManager,
-    IHttpUserContext httpUserContext,
+    IUserContext httpUserContext,
     IValidator<RegisterUserRequest> registerUserRequestValidator,
     IValidator<DeleteUserRequest> deleteUserRequestValidator,
     IAuthOptions authOptions,

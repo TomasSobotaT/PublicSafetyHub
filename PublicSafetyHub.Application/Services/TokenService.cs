@@ -1,12 +1,12 @@
 using OpenIddict.Abstractions;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Auth;
-using PublicSafetyHub.Base.UserContext;
+using PublicSafetyHub.Application.UserContext;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace PublicSafetyHub.Application.Services;
 
-public class TokenService(IAuthService authService, IAuthOptions authOptions, IHttpUserContext httpUserContext) : ITokenService
+public class TokenService(IAuthService authService, IAuthOptions authOptions, IUserContext httpUserContext) : ITokenService
 {
     public async Task<TokenExchangeResult> ExchangeAsync()
     {

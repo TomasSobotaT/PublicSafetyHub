@@ -4,6 +4,7 @@ using PublicSafetyHub.Application.Jobs;
 using PublicSafetyHub.Application.Services;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Application.Validators;
+using PublicSafetyHub.Application.UserContext;
 using PublicSafetyHub.Base.Auth;
 using PublicSafetyHub.Base.Extensions;
 using PublicSafetyHub.Core.Configurations;
@@ -37,7 +38,8 @@ public static class DependencyInjectionExtension
         private void RegisterServices()
         {
             services.AddHttpContextAccessor();
-            services.TryAddScoped<IHttpUserContext, HttpUserContext>();
+            services.TryAddScoped<IUserContext, UserContext>();
+            services.TryAddScoped<IHttpUserContext>(provider => provider.GetRequiredService<IUserContext>());
             services.TryAddScoped<IAuthService, AuthService>();
             services.TryAddScoped<IArticleService, ArticleService>();
             services.TryAddScoped<ILogReadService, LogReadService>();
