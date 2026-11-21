@@ -6,7 +6,7 @@ namespace PublicSafetyHub.Application.Projections;
 
 public static class ArticleProjection
 {
-    public static readonly Expression<Func<ArticleEntity, Article>> Project = article => new Article
+    public static readonly Expression<Func<ArticleEntity, Article>> Article = article => new Article
     {
         Id = article.Id,
         Title = article.Title,

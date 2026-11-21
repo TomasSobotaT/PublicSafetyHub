@@ -18,10 +18,11 @@
       "jsonLibrary": "SystemTextJson",
       "dateType": "System.DateTime",
       "dateTimeType": "System.DateTime",
+      "parameterDateTimeFormat": "O",
       "responseArrayType": "System.Collections.Generic.List",
       "arrayType": "System.Collections.Generic.List",
       "generateNullableReferenceTypes": false,
-      "output": "/PublicSafetyHubClient.g.cs"
+      "output": "PublicSafetyHubClient.g.cs"
     }
   }
 }

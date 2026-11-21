@@ -5,15 +5,15 @@ using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
 using PublicSafetyHub.Application.Services.Interfaces;
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Application.UserContext;
 using PublicSafetyHub.Base.UnitOfWork;
 using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Models.Auth.Requests;
-using PublicSafetyHub.Models.Auth.Responses;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using PublicSafetyHub.Models.Users;
 
 namespace PublicSafetyHub.Application.Services;
 

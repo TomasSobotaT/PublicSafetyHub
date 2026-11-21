@@ -2,13 +2,13 @@ namespace PublicSafetyHub.Core.Configurations;
 
 public class PostgreSqlLoggingOptions : IPostgreSqlLoggingOptions
 {
-    public string ConnectionStringName { get; set; } = "DefaultConnection";
+    public string ConnectionStringName { get; set; }
 
-    public int RetentionDays { get; set; } = 30;
+    public int RetentionDays { get; set; }
 
-    public int BatchSizeLimit { get; set; } = 50;
+    public int BatchSizeLimit { get; set; }
 
-    public int QueueLimit { get; set; } = 10000;
+    public int QueueLimit { get; set; }
 
-    public int PeriodSeconds { get; set; } = 5;
+    public int PeriodSeconds { get; set; }
 }

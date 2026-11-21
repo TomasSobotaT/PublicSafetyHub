@@ -1,4 +1,4 @@
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 
 namespace PublicSafetyHub.Application.Services.Interfaces;
 

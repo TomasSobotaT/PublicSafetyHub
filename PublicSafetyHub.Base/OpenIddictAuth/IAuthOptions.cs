@@ -1,4 +1,4 @@
-namespace PublicSafetyHub.Base.Auth;
+namespace PublicSafetyHub.Base.OpenIddictAuth;
 
 public interface IAuthOptions
 {

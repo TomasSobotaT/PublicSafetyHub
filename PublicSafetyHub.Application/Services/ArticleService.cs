@@ -69,7 +69,7 @@ public class ArticleService(
         }
 
         return specification.HasSearch
-            ? await articleRepository.SearchArticlesAsync(specification, filteredRequest, ArticleProjection.Project, article => article.Id)
-            : await articleRepository.GetPagedAsync(specification, filteredRequest, projection: ArticleProjection.Project);
+            ? await articleRepository.SearchArticlesAsync(specification, filteredRequest, ArticleProjection.Article, article => article.Id)
+            : await articleRepository.GetPagedAsync(specification, filteredRequest, projection: ArticleProjection.Article);
     }
 }

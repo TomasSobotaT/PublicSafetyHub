@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Server.AspNetCore;
 using PublicSafetyHub.Base.Results;
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 using PublicSafetyHub.Models.Auth.Responses;
 
 namespace PublicSafetyHub.Host.Extensions;

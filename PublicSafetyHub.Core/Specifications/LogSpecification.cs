@@ -7,11 +7,11 @@ namespace PublicSafetyHub.Core.Specifications;
 
 public class LogSpecification : Specification<LogEntity>
 {
-    public DateTime? From { get; set; }
+    public DateTime? DateFrom { get; set; }
 
-    public DateTime? To { get; set; }
+    public DateTime? DateTo { get; set; }
 
-    public LogSeverity? Level { get; set; }
+    public LogSeverity[] Levels { get; set; }
 
     public string Category { get; set; }
 
@@ -42,25 +42,24 @@ public class LogSpecification : Specification<LogEntity>
     {
         var criteria = new List<Expression<Func<LogEntity, bool>>>();
 
-        if (From.HasValue)
+        if (DateFrom.HasValue)
         {
-            criteria.Add(log => log.Timestamp >= From.Value);
+            criteria.Add(log => log.Timestamp >= DateFrom.Value);
         }
 
-        if (To.HasValue)
+        if (DateTo.HasValue)
         {
-            criteria.Add(log => log.Timestamp <= To.Value);
+            criteria.Add(log => log.Timestamp <= DateTo.Value);
         }
 
-        if (Level.HasValue)
+        if (Levels is { Length: > 0 })
         {
-            var level = (int)Level.Value;
-            criteria.Add(log => log.Level == level);
+            criteria.Add(log => Levels.Contains(log.Level));
         }
 
         if (!string.IsNullOrWhiteSpace(Category))
         {
-            criteria.Add(log => log.Category != null && log.Category.Contains(Category));
+            criteria.Add(log => log.Category == Category);
         }
 
         if (!string.IsNullOrWhiteSpace(SearchValue))

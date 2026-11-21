@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 
 namespace PublicSafetyHub.Host.OpenApi;
 

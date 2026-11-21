@@ -97,3 +97,15 @@ Ověření této změny používá sestavení a kontrolu kódu podle pokynů pro
 - Inicializátor spustit opakovaně nad existující DB, změnit callback/scopes a vypnout klienta; ověřit aktualizaci stejného záznamu a odstranění password oprávnění bez resetu DB. Z originu společného pro Blazor a backend ověřit discovery/token/API bez cookies.
 
 Reference: [PKCE](https://documentation.openiddict.com/configuration/proof-key-for-code-exchange), [oprávnění aplikací](https://documentation.openiddict.com/configuration/application-permissions), [claim destinations](https://documentation.openiddict.com/configuration/claim-destinations).
+
+## User administration
+
+Reusable OpenIddict-specific helpers live in Base/OpenIddictAuth (namespace PublicSafetyHub.Base.OpenIddictAuth); the AuthOptions configuration section retains its name.
+
+The ApiAccess policy and Admin role protect these endpoints:
+
+- GET /api/v1/admin/users: FilteredRequest<UserFilter> with SearchValue (case-insensitive email substring), IsBlocked, and standard validated pagination and sorting (Id, Email, CreatedAt, UpdatedAt, IsBlocked). Deleted users are excluded. Only the User DTO is projected; password hashes, stamps and other Identity internals are never returned.
+- PUT /api/v1/admin/users/{id}/blocked: body {"isBlocked":true} blocks, false unblocks.
+- DELETE /api/v1/admin/users/{id}: soft deletes an account.
+
+Mutations return HTTP 200 on success, 404 for a missing/deleted user and 400 for invalid input. An administrator cannot block or delete their own account through these endpoints. Blocking or deleting updates the security stamp and revokes all authorizations and tokens within one UnitOfWork transaction. Unblocking does not reactivate revoked sessions.

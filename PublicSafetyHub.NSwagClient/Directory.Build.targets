@@ -3,7 +3,6 @@
     <OpenApiUrl Condition="'$(OpenApiUrl)' == ''">https://localhost:7102/openapi/v1.json</OpenApiUrl>
   </PropertyGroup>
   <Target Name="GenerateApiClient">
-    <MakeDir Directories="$(MSBuildProjectDirectory)/Generated" />
     <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
           Command="$(NSwagExe_Net100) run nswag.json /variables:OpenApiUrl=&quot;$(OpenApiUrl)&quot;" />
   </Target>

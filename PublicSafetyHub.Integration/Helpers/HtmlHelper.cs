@@ -2,7 +2,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
-namespace PublicSafetyHub.Core.Helpers;
+namespace PublicSafetyHub.Integration.Helpers;
 
 public static class HtmlHelper
 {

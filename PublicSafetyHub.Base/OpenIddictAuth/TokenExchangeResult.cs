@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace PublicSafetyHub.Base.Auth;
+namespace PublicSafetyHub.Base.OpenIddictAuth;
 
 public class TokenExchangeResult
 {

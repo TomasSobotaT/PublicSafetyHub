@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.Abstractions;
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 using PublicSafetyHub.Core.Helpers;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Validation.AspNetCore;
 using OpenIddict.Abstractions;
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Core.Helpers;
 using PublicSafetyHub.Data.Context;

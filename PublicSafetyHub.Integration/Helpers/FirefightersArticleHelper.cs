@@ -2,7 +2,7 @@ using System.Net;
 using HtmlAgilityPack;
 using MimeKit;
 
-namespace PublicSafetyHub.Core.Helpers;
+namespace PublicSafetyHub.Integration.Helpers;
 
 public static class FirefightersArticleHelper
 {
@@ -82,7 +82,7 @@ public static class FirefightersArticleHelper
         if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
             || uri.Scheme != Uri.UriSchemeHttps
             || !string.Equals(uri.Host, "hzscr.gov.cz", StringComparison.OrdinalIgnoreCase)
-            || !string.IsNullOrEmpty(uri.UserInfo)
+            || !string.IsNullOrWhiteSpace(uri.UserInfo)
             || !uri.IsDefaultPort)
         {
             return null;

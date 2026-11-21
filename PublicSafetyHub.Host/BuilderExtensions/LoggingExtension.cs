@@ -67,9 +67,9 @@ public static class LoggingExtension
                     new Dictionary<string, ColumnWriterBase>
                     {
                         ["Timestamp"] = new TimestampColumnWriter(),
-                        ["Level"] = new LevelColumnWriter(false, NpgsqlDbType.Integer),
+                        ["Id"] = new LogIdColumnWriter(),
+                        ["Level"] = new LogSeverityColumnWriter(),
                         ["Category"] = new SinglePropertyColumnWriter("SourceContext", PropertyWriteMethod.Raw, NpgsqlDbType.Text),
-                        ["MessageTemplate"] = new MessageTemplateColumnWriter(),
                         ["Message"] = new RenderedMessageColumnWriter(),
                         ["Exception"] = new ExceptionColumnWriter(),
                         ["TraceId"] = new SinglePropertyColumnWriter("TraceId", PropertyWriteMethod.Raw, NpgsqlDbType.Text),

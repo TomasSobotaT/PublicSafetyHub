@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Data.Conventions;
 
 namespace PublicSafetyHub.Data.Context;
 
@@ -16,7 +15,8 @@ public class PublicSafetyHubDbContext(DbContextOptions<PublicSafetyHubDbContext>
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         base.ConfigureConventions(configurationBuilder);
-        configurationBuilder.Conventions.Add(_ => new DateTimeConvention());
+        configurationBuilder.Properties<DateTime>().HaveColumnType("timestamp with time zone");
+        configurationBuilder.Properties<DateTime?>().HaveColumnType("timestamp with time zone");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

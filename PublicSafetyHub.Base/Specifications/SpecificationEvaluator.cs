@@ -1,4 +1,4 @@
-﻿namespace PublicSafetyHub.Base.Specifications;
+namespace PublicSafetyHub.Base.Specifications;
 
 public static class SpecificationEvaluator
 {

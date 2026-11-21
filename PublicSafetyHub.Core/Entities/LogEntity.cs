@@ -1,16 +1,15 @@
+using PublicSafetyHub.Base.Entities.Base;
+using PublicSafetyHub.Core.Enums;
+
 namespace PublicSafetyHub.Core.Entities;
 
-public class LogEntity
+public class LogEntity : BaseEntity<Guid>
 {
-    public long Id { get; set; }
-
     public DateTime Timestamp { get; set; }
 
-    public int Level { get; set; }
+    public LogSeverity Level { get; set; }
 
     public string Category { get; set; }
-
-    public string MessageTemplate { get; set; }
 
     public string Message { get; set; }
 

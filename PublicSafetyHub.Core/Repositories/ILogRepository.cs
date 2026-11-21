@@ -1,14 +1,10 @@
-using PublicSafetyHub.Core.Specifications;
-using System.Linq.Expressions;
 using PublicSafetyHub.Core.Entities;
 using PublicSafetyHub.Base.Filtering;
+using PublicSafetyHub.Base.Repositories;
 
 namespace PublicSafetyHub.Core.Repositories;
 
-public interface ILogRepository
+public interface ILogRepository : IBaseRepository<LogEntity, Guid>
 {
-    Task<PagedResult<TResult>> GetLogsAsync<TResult>(LogSpecification specification, PaginationRequest paginationRequest,
-        Expression<Func<LogEntity, TResult>> projection);
-
-    Task<TResult> GetAsync<TResult>(long id, Expression<Func<LogEntity, TResult>> projection);
+    Task<PagedResult<string>> GetCategoriesAsync(string searchValue, PaginationRequest paginationRequest);
 }

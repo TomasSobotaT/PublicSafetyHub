@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using PublicSafetyHub.Base.Results;
 using PublicSafetyHub.Models.Auth.Requests;
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 
 namespace PublicSafetyHub.Application.Services.Interfaces;
 

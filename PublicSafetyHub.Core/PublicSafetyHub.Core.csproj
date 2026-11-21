@@ -6,8 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Pgvector" Version="0.3.2" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.13.1" />
-    <PackageReference Include="MimeKit.Core" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PublicSafetyHub.Base\PublicSafetyHub.Base.csproj" />

@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Net;
 using HtmlAgilityPack;
 using PublicSafetyHub.Core.Configurations;
-using PublicSafetyHub.Core.Helpers;
+using PublicSafetyHub.Integration.Helpers;
 using PublicSafetyHub.Integration.IntegrationModels;
 using PublicSafetyHub.Integration.Repositories.Interfaces;
 using PublicSafetyHub.Integration.Clients;

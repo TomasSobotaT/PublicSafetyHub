@@ -2,9 +2,9 @@ namespace PublicSafetyHub.Core.Configurations;
 
 public class ApplicationLoggingOptions : IApplicationLoggingOptions
 {
-    public string FilePath { get; set; } = "Logs/application-.json";
+    public string FilePath { get; set; }
 
-    public int RetainedFileCountLimit { get; set; } = 30;
+    public int RetainedFileCountLimit { get; set; }
 
-    public long FileSizeLimitBytes { get; set; } = 10 * 1024 * 1024;
+    public long FileSizeLimitBytes { get; set; }
 }

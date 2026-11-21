@@ -1,26 +1,39 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PublicSafetyHub.Core.Entities;
-using PublicSafetyHub.Base.Specifications;
+using PublicSafetyHub.Base.Repositories;
 using PublicSafetyHub.Core.Repositories;
-using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Base.Filtering;
 
 namespace PublicSafetyHub.Data.Repositories;
 
-public class LogRepository(PublicSafetyHubDbContext dbContext) : ILogRepository
+public class LogRepository(PublicSafetyHubDbContext dbContext) : BaseRepository<LogEntity, Guid>(dbContext), ILogRepository
 {
-    public async Task<PagedResult<TResult>> GetLogsAsync<TResult>(LogSpecification specification, PaginationRequest paginationRequest,
-        Expression<Func<LogEntity, TResult>> projection)
+    public async Task<PagedResult<string>> GetCategoriesAsync(string searchValue, PaginationRequest paginationRequest)
     {
-        ArgumentNullException.ThrowIfNull(projection);
-        specification.ApplyPagination(paginationRequest);
-        var query = dbContext.Logs.AsNoTracking();
-        var totalCount = await SpecificationEvaluator.GetQuery(query, specification, criteriaOnly: true).CountAsync();
-        var items = await SpecificationEvaluator.GetQuery(query, specification).Select(projection).ToListAsync();
+        var query = dbContext.Logs
+            .AsNoTracking()
+            .Where(log => !string.IsNullOrWhiteSpace(log.Category))
+            .Select(log => log.Category)
+            .Distinct();
 
-        return new PagedResult<TResult>
+        if (!string.IsNullOrWhiteSpace(searchValue))
+        {
+            query = query.Where(category => category.Contains(searchValue));
+        }
+
+        var totalCount = await query.CountAsync();
+
+        var orderedQuery = string.Equals(paginationRequest.SortDirection, "desc", StringComparison.OrdinalIgnoreCase)
+            ? query.OrderByDescending(category => category)
+            : query.OrderBy(category => category);
+
+        var items = await orderedQuery
+            .Skip(checked((paginationRequest.PageNumber - 1) * paginationRequest.PageSize))
+            .Take(paginationRequest.PageSize)
+            .ToListAsync();
+
+        return new PagedResult<string>
         {
             Items = items,
             TotalCount = totalCount,
@@ -29,10 +42,4 @@ public class LogRepository(PublicSafetyHubDbContext dbContext) : ILogRepository
         };
     }
 
-    public async Task<TResult> GetAsync<TResult>(long id, Expression<Func<LogEntity, TResult>> projection)
-    {
-        ArgumentNullException.ThrowIfNull(projection);
-
-        return await dbContext.Logs.AsNoTracking().Where(log => log.Id == id).Select(projection).FirstOrDefaultAsync();
-    }
 }

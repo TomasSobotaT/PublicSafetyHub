@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using PublicSafetyHub.Base.Filtering;
 
 namespace PublicSafetyHub.Base.Specifications;

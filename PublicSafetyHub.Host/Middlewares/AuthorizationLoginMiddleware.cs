@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.Primitives;
 using PublicSafetyHub.Application.Services.Interfaces;
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 using PublicSafetyHub.Base.Results;
 
 namespace PublicSafetyHub.Host.Middlewares;

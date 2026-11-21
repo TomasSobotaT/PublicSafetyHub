@@ -1,6 +1,6 @@
 using OpenIddict.Abstractions;
 using PublicSafetyHub.Application.Services.Interfaces;
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 using PublicSafetyHub.Application.UserContext;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 

@@ -14,8 +14,10 @@ public class LogConfiguration : IEntityTypeConfiguration<LogEntity>
     {
         builder.ToTable(TableName, SchemaName);
         builder.HasKey(log => log.Id);
-        builder.Property(log => log.Timestamp).HasColumnType("timestamp with time zone");
-        builder.Property(log => log.MessageTemplate).IsRequired();
+        builder.HasQueryFilter(log => !log.IsDeleted);
+        builder.Property(log => log.IsDeleted).HasDefaultValue(false);
+        builder.Property(log => log.Id).ValueGeneratedNever();
+        builder.Property(log => log.Level).HasConversion<string>().HasMaxLength(32);
         builder.Property(log => log.Message).IsRequired();
         builder.Property(log => log.Properties).HasColumnType("jsonb").IsRequired();
         builder.HasIndex(log => new { log.Timestamp, log.Id }).IsDescending(true, true).HasDatabaseName("IX_Logs_Timestamp_Id");

@@ -5,7 +5,7 @@ using MailKit.Net.Imap;
 using MailKit.Search;
 using MailKit.Security;
 using PublicSafetyHub.Core.Configurations;
-using PublicSafetyHub.Core.Helpers;
+using PublicSafetyHub.Integration.Helpers;
 using PublicSafetyHub.Integration.Repositories.Interfaces;
 using PublicSafetyHub.Integration.Clients;
 using PublicSafetyHub.Integration.IntegrationModels;

@@ -1,4 +1,4 @@
-using PublicSafetyHub.Base.Auth;
+using PublicSafetyHub.Base.OpenIddictAuth;
 
 namespace PublicSafetyHub.Core.Helpers;
 
@@ -7,8 +7,8 @@ public static class AuthConfigurationHelper
     public static void Validate(IAuthOptions options)
     {
         if (!Uri.TryCreate(options.Issuer, UriKind.Absolute, out var issuer) ||
-            issuer.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(issuer.UserInfo) ||
-            issuer.AbsolutePath != "/" || !string.IsNullOrEmpty(issuer.Query) || !string.IsNullOrEmpty(issuer.Fragment))
+            issuer.Scheme != Uri.UriSchemeHttps || !string.IsNullOrWhiteSpace(issuer.UserInfo) ||
+            issuer.AbsolutePath != "/" || !string.IsNullOrWhiteSpace(issuer.Query) || !string.IsNullOrWhiteSpace(issuer.Fragment))
         {
             throw new InvalidOperationException("AuthOptions:Issuer must be an HTTPS origin without a path, query, fragment or user information.");
         }
@@ -31,8 +31,8 @@ public static class AuthConfigurationHelper
             foreach (var address in client.RedirectUris)
             {
                 if (!Uri.TryCreate(address, UriKind.Absolute, out var uri) ||
-                    Uri.UnescapeDataString(address).Contains('*') || !string.IsNullOrEmpty(uri.Fragment) ||
-                    !string.IsNullOrEmpty(uri.UserInfo) ||
+                    Uri.UnescapeDataString(address).Contains('*') || !string.IsNullOrWhiteSpace(uri.Fragment) ||
+                    !string.IsNullOrWhiteSpace(uri.UserInfo) ||
                     (uri.Scheme != Uri.UriSchemeHttps && !uri.Scheme.Contains('.')))
                 {
                     throw new InvalidOperationException($"Client '{client.ClientId}' requires exact HTTPS or reverse-domain native callback URIs, without wildcards, fragments or user information.");
