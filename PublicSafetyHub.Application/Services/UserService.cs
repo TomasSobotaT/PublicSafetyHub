@@ -49,19 +49,19 @@ public class UserService(
         });
     }
 
-    public Task<ApplicationResult<NoValueResult>> BlockUserAsync(int id, BlockUserRequest request)
+    public async Task<ApplicationResult<NoValueResult>> BlockUserAsync(int id, BlockUserRequest request)
     {
         if (request.IsBlocked is null)
         {
-            ResultHelper.Validation("IsBlocked value must be provided.");
+            return ResultHelper.Validation("IsBlocked value must be provided.");
         }
 
-        return ChangeUserStateAsync(id, isBlocked: request.IsBlocked.Value, delete: false);
+        return await ChangeUserStateAsync(id, isBlocked: request.IsBlocked.Value, delete: false);
     }
 
-    public Task<ApplicationResult<NoValueResult>> DeleteUserAsync(int id)
+    public async Task<ApplicationResult<NoValueResult>> DeleteUserAsync(int id)
     {
-        return ChangeUserStateAsync(id, isBlocked: false, delete: true);
+        return await ChangeUserStateAsync(id, isBlocked: false, delete: true);
     }
 
     private async Task<ApplicationResult<NoValueResult>> ChangeUserStateAsync(int id, bool isBlocked, bool delete)
