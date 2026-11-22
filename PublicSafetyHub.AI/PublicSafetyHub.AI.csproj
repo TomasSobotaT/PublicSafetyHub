@@ -13,4 +13,3 @@
     <ProjectReference Include="..\PublicSafetyHub.Core\PublicSafetyHub.Core.csproj" />
   </ItemGroup>
 </Project>
-t
