@@ -426,8 +426,11 @@ namespace PublicSafetyHub.Data.Migrations
 
             modelBuilder.Entity("PublicSafetyHub.Core.Entities.LogEntity", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Category")
                         .HasColumnType("text");
@@ -435,17 +438,14 @@ namespace PublicSafetyHub.Data.Migrations
                     b.Property<string>("Exception")
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Level")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
+                    b.Property<int>("Level")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("MessageTemplate")
                         .IsRequired()
                         .HasColumnType("text");
 
