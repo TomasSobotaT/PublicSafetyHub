@@ -6,6 +6,8 @@ using PublicSafetyHub.Models.Articles;
 using PublicSafetyHub.Models.Logging;
 using PublicSafetyHub.Models.Users;
 
+namespace PublicSafetyHub.Application.Automapper;
+
 public class AutomapperProfile : Profile
 {
     public AutomapperProfile()
