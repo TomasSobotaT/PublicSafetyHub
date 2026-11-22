@@ -22,7 +22,7 @@ public class FirefightersArticlesRepository(
     {
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
         var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone).Date;
-        var firstDate = today.AddDays(-5);
+        var firstDate = today.AddDays(-2);
         var endDate = today.AddDays(1);
         var links = new HashSet<string>(StringComparer.Ordinal);
 
@@ -35,18 +35,24 @@ public class FirefightersArticlesRepository(
         await inbox.OpenAsync(FolderAccess.ReadOnly);
 
         var searchQuery = SearchQuery.DeliveredAfter(firstDate.AddDays(-5))
-            .And(SearchQuery.DeliveredBefore(endDate.AddDays(1)))
-            .And(SearchQuery.FromContains("mv.gov"))
-            .And(SearchQuery.SubjectContains("HZSČR"));
+            .And(SearchQuery.DeliveredBefore(endDate.AddDays(1)));
 
         var newsletterMessageIds = await inbox.SearchAsync(searchQuery);
 
         if (newsletterMessageIds.Count > 0)
         {
-            var newsletterMessageSummaries = await inbox.FetchAsync(newsletterMessageIds, MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate);
+            var newsletterMessageSummaries = await inbox.FetchAsync(newsletterMessageIds, MessageSummaryItems.UniqueId | MessageSummaryItems.InternalDate | MessageSummaryItems.Envelope);
 
             foreach (var messageSummary in newsletterMessageSummaries)
             {
+                var from = messageSummary.Envelope?.From?.ToString() ?? string.Empty;
+                var subject = messageSummary.Envelope?.Subject ?? string.Empty;
+
+                if (!from.Contains("mv.gov", StringComparison.OrdinalIgnoreCase) || !subject.Contains("HZSČR", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 if (!messageSummary.InternalDate.HasValue)
                 {
                     throw new InvalidDataException("Firefighters newsletter has no IMAP delivery date.");
