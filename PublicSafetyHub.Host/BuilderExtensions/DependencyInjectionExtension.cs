@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using PublicSafetyHub.Application.Automapper;
 using PublicSafetyHub.Application.Jobs;
 using PublicSafetyHub.Application.Services;
 using PublicSafetyHub.Application.Services.Interfaces;

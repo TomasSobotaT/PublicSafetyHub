@@ -94,16 +94,15 @@ namespace PublicSafetyHub.Data.Migrations
                 schema: "logging",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Level = table.Column<int>(type: "integer", nullable: false),
+                    Level = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
                     Category = table.Column<string>(type: "text", nullable: true),
-                    MessageTemplate = table.Column<string>(type: "text", nullable: false),
                     Message = table.Column<string>(type: "text", nullable: false),
                     Exception = table.Column<string>(type: "text", nullable: true),
                     TraceId = table.Column<string>(type: "text", nullable: true),
-                    Properties = table.Column<string>(type: "jsonb", nullable: false)
+                    Properties = table.Column<string>(type: "jsonb", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {

@@ -22,7 +22,7 @@ public class FirefightersArticlesRepository(
     {
         var timeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Prague");
         var today = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZone).Date;
-        var firstDate = today.AddDays(-1);
+        var firstDate = today.AddDays(-5);
         var endDate = today.AddDays(1);
         var links = new HashSet<string>(StringComparer.Ordinal);
 
@@ -34,10 +34,10 @@ public class FirefightersArticlesRepository(
         var inbox = client.Inbox;
         await inbox.OpenAsync(FolderAccess.ReadOnly);
 
-        var searchQuery = SearchQuery.DeliveredAfter(firstDate.AddDays(-1))
+        var searchQuery = SearchQuery.DeliveredAfter(firstDate.AddDays(-5))
             .And(SearchQuery.DeliveredBefore(endDate.AddDays(1)))
-            .And(SearchQuery.FromContains(FirefightersArticleHelper.Sender))
-            .And(SearchQuery.SubjectContains(FirefightersArticleHelper.Subject));
+            .And(SearchQuery.FromContains("mv.gov"))
+            .And(SearchQuery.SubjectContains("HZSČR"));
 
         var newsletterMessageIds = await inbox.SearchAsync(searchQuery);
 
