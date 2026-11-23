@@ -35,11 +35,11 @@ if (saved.IsSuccess)
 }
 
 var found = await documentService.SearchDocumentsAsync("mimořádná událost", limit: 5);
-var semantic = await documentService.SearchDocumentsAsync("Jak postupovat při nehodě?", searchMode: DocumentSearchMode.Semantic);
-var hybrid = await documentService.SearchDocumentsAsync("mimořádná událost", searchMode: DocumentSearchMode.Hybrid);
+var semantic = await documentService.SearchDocumentsAsync("Jak postupovat při nehodě?", searchMode: SearchMode.Semantic);
+var hybrid = await documentService.SearchDocumentsAsync("mimořádná událost", searchMode: SearchMode.Hybrid);
 ```
 
-`Document` je v `PublicSafetyHub.Models.Documents`, `DocumentSearchMode` v `PublicSafetyHub.Core.Enums`, služba je dostupná přes `PublicSafetyHub.Application.Services.Interfaces.IDocumentService`. Obě operace vracejí `ApplicationResult`: před čtením `Value` ověř `IsSuccess`; validační chyby jsou v `Error`. Technická selhání OpenSearch vyvolávají výjimku pro stávající exception handling.
+`Document` je v `PublicSafetyHub.Models.Documents`, `SearchMode` v `PublicSafetyHub.Core.Enums`, služba je dostupná přes `PublicSafetyHub.Application.Services.Interfaces.IDocumentService`. Obě operace vracejí `ApplicationResult`: před čtením `Value` ověř `IsSuccess`; validační chyby jsou v `Error`. Technická selhání OpenSearch vyvolávají výjimku pro stávající exception handling.
 
 - `Id`: pro nový dokument ponech `Guid.Empty`; služba po validaci obsahu vygeneruje UUID v7 přes `Guid.CreateVersion7()`. Úspěšný výsledek `SaveDocumentAsync` vrací ID uloženého dokumentu. Vstupní objekt se nemění, proto si ID z výsledku uchovej pro další aktualizace. UUID v7 obsahuje UTC časovou značku svého vytvoření; při aktualizaci se ID ani tato značka nemění. Existující ID služba zachová a celý dokument nahradí, včetně URL. Při opakování požadavku bez ID vzniká nový dokument; pokud potřebuješ zachovat ID i při nejistém výsledku předchozího zápisu, přiděl je před prvním voláním. Stejné URL s jiným ID je jiný dokument.
 - `Title`: povinný neprázdný titulek, nejvýše 512 znaků.
@@ -64,7 +64,7 @@ Hledání má režimy:
 
 Použité přesné vektorové hledání prochází všechny vyhovující vektory. Nevyžaduje `index.knn=true`, HNSW index ani serverovou search pipeline, potřebuje však OpenSearch k-NN plugin s podporou skriptu `knn_score`. Pro velké objemy dokumentů zvaž přechod na přibližné ANN hledání s odpovídajícím indexem. Viz [oficiální dokumentace přesného k-NN](https://docs.opensearch.org/latest/vector-search/vector-search-techniques/knn-score-script/).
 
-Dotaz musí být neprázdný a mít nejvýše 2048 znaků; pro sémantiku se ověřuje i limit tokenů embedding modelu. Limit výsledků je 1–100, výchozí 5. Neznámý režim je validační chyba. Chybějící index před prvním zápisem vrací prázdný seznam. Timeout či selhání shardů se nepovažují za platný prázdný výsledek a hybrid při selhání některé větve nevrací pouze druhou větev.
+Dotaz musí být neprázdný a mít nejvýše 2048 znaků; pro sémantiku se ověřuje i limit tokenů embedding modelu. Limit výsledků je 1–100, výchozí 5. Chybějící index před prvním zápisem vrací prázdný seznam. Timeout či selhání shardů se nepovažují za platný prázdný výsledek a hybrid při selhání některé větve nevrací pouze druhou větev.
 
 Zápis nevyžaduje okamžitý refresh indexu, takže se dokument v hledání objeví až po běžném refreshi OpenSearch. Nejde o EF repository a zápis nepotřebuje `IUnitOfWork.SaveChangesAsync`. Neprovádí se synchronizace s PostgreSQL, čtení souborů/PDF, dělení textu ani mazání dokumentů.
 

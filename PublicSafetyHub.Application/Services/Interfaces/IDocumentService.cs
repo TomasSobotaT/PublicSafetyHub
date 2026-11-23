@@ -8,5 +8,5 @@ public interface IDocumentService
 {
     Task<ApplicationResult<Guid>> SaveDocumentAsync(Document document);
 
-    Task<ApplicationResult<IReadOnlyList<Document>>> SearchDocumentsAsync(string searchText, int limit = 5, DocumentSearchMode searchMode = DocumentSearchMode.FullText);
+    Task<ApplicationResult<IReadOnlyList<Document>>> SearchDocumentsAsync(string searchText, int limit = 5, SearchMode searchMode = SearchMode.FullText);
 }

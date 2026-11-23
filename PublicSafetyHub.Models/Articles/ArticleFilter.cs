@@ -8,7 +8,5 @@ public class ArticleFilter
 
     public string SearchValue { get; set; }
 
-    public bool FullTextSearch { get; set; }
-
-    public bool SemanticSearch { get; set; }
+    public SearchMode? SearchMode { get; set; }
 }

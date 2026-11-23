@@ -31,21 +31,16 @@ public class DocumentSearchRepository(IOpenSearchClient openSearchClient, IOpenS
         }
     }
 
-    public async Task<IReadOnlyList<SearchDocument>> SearchAsync(string searchText, int limit, DocumentSearchMode searchMode, float[] queryEmbedding = null)
+    public async Task<IReadOnlyList<SearchDocument>> SearchAsync(string searchText, int limit, SearchMode searchMode, float[] queryEmbedding = null)
     {
-        if (searchMode == DocumentSearchMode.FullText)
+        if (searchMode == SearchMode.FullText)
         {
             return await SearchFullTextAsync(searchText, limit);
         }
 
-        if (searchMode != DocumentSearchMode.Semantic && searchMode != DocumentSearchMode.Hybrid)
-        {
-            throw new ArgumentOutOfRangeException(nameof(searchMode), searchMode, "Unknown document search mode.");
-        }
-
         ValidateEmbedding(queryEmbedding);
 
-        if (searchMode == DocumentSearchMode.Semantic)
+        if (searchMode == SearchMode.Semantic)
         {
             return await SearchSemanticAsync(queryEmbedding, limit);
         }

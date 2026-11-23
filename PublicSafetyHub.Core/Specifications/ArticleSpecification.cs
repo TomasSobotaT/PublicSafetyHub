@@ -12,13 +12,11 @@ public class ArticleSpecification : Specification<ArticleEntity>
 
     public string SearchValue { get; set; }
 
-    public bool FullTextSearch { get; set; }
-
-    public bool SemanticSearch { get; set; }
+    public SearchMode? SearchMode { get; set; }
 
     public Vector QueryEmbedding { get; set; }
 
-    public bool HasSearch => !string.IsNullOrWhiteSpace(SearchValue) && (FullTextSearch || SemanticSearch);
+    public bool HasSearch => !string.IsNullOrWhiteSpace(SearchValue) && SearchMode.HasValue;
 
     public static bool IsAllowedSort(string sortBy) => !string.IsNullOrWhiteSpace(sortBy) && AllowedSorts.ContainsKey(sortBy.Trim());
 

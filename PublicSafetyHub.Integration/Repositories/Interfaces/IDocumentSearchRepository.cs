@@ -7,5 +7,5 @@ public interface IDocumentSearchRepository
 {
     Task IndexAsync(SearchDocument document);
 
-    Task<IReadOnlyList<SearchDocument>> SearchAsync(string searchText, int limit, DocumentSearchMode searchMode, float[] queryEmbedding = null);
+    Task<IReadOnlyList<SearchDocument>> SearchAsync(string searchText, int limit, SearchMode searchMode, float[] queryEmbedding = null);
 }

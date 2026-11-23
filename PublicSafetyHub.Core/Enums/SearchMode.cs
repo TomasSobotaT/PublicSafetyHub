@@ -1,6 +1,6 @@
 namespace PublicSafetyHub.Core.Enums;
 
-public enum DocumentSearchMode
+public enum SearchMode
 {
     FullText = 1,
     Semantic = 2,

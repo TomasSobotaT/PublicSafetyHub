@@ -11,6 +11,7 @@ using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Application.Projections;
 using PublicSafetyHub.Models.Articles;
 using PublicSafetyHub.Base.Filtering;
+using PublicSafetyHub.Core.Enums;
 
 namespace PublicSafetyHub.Application.Services;
 
@@ -44,7 +45,7 @@ public class ArticleService(
 
         var specification = filteredRequest.Filter is null ? new ArticleSpecification() : mapper.Map<ArticleSpecification>(filteredRequest.Filter);
 
-        if (specification.HasSearch && specification.SemanticSearch)
+        if (specification.HasSearch && specification.SearchMode is SearchMode.Semantic or SearchMode.Hybrid)
         {
             if (string.IsNullOrWhiteSpace(openAiOptions.ApiKey) || string.IsNullOrWhiteSpace(openAiOptions.EmbeddingModel))
             {

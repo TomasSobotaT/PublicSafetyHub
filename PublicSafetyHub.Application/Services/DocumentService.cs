@@ -65,7 +65,7 @@ public class DocumentService(
         return searchDocument.Id;
     }
 
-    public async Task<ApplicationResult<IReadOnlyList<Document>>> SearchDocumentsAsync(string searchText, int limit = 5, DocumentSearchMode searchMode = DocumentSearchMode.FullText)
+    public async Task<ApplicationResult<IReadOnlyList<Document>>> SearchDocumentsAsync(string searchText, int limit = 5, SearchMode searchMode = SearchMode.FullText)
     {
         if (string.IsNullOrWhiteSpace(searchText) || searchText.Length > 2048)
         {
@@ -77,15 +77,10 @@ public class DocumentService(
             return ResultHelper.Validation("Search limit must be between 1 and 100.");
         }
 
-        if (!Enum.IsDefined(searchMode))
-        {
-            return ResultHelper.Validation("Search mode must be FullText, Semantic or Hybrid.");
-        }
-
         var normalizedSearchText = searchText.Trim();
         float[] queryEmbedding = null;
 
-        if (searchMode != DocumentSearchMode.FullText)
+        if (searchMode != SearchMode.FullText)
         {
             if (!IsEmbeddingConfigured())
             {

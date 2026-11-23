@@ -39,7 +39,7 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
         List<int> semanticArticleIds = [];
 
 
-        if (specification.FullTextSearch)
+        if (specification.SearchMode is SearchMode.FullText or SearchMode.Hybrid)
         {
             var matches = filteredArticles
                 .Where(article => EF.Property<NpgsqlTsVector>(article, "SearchVector")
@@ -50,7 +50,7 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
                     .RankCoverDensity(EF.Functions.WebSearchToTsQuery("simple", searchValue)))
                 .ThenBy(article => article.Id);
 
-            if (!specification.SemanticSearch)
+            if (specification.SearchMode == SearchMode.FullText)
             {
                 var totalCount = await matches.CountAsync();
                 var offset = checked((specification.PageNumber.Value - 1) * specification.PageSize.Value);
@@ -74,7 +74,7 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
                 .ToListAsync();
         }
 
-        if (specification.SemanticSearch)
+        if (specification.SearchMode is SearchMode.Semantic or SearchMode.Hybrid)
         {
             var queryEmbedding = specification.QueryEmbedding ?? throw new InvalidOperationException("Semantic search requires a query embedding.");
 
@@ -91,7 +91,7 @@ public class ArticleRepository(PublicSafetyHubDbContext dbContext) : ExtendedBas
         }
 
         var rankedArticleIds = semanticArticleIds;
-        if (specification.FullTextSearch && specification.SemanticSearch)
+        if (specification.SearchMode == SearchMode.Hybrid)
         {
             rankedArticleIds = [.. fullTextArticleIds
                 .Select((id, index) => new { Id = id, Score = 1.0 / (ReciprocalRankConstant + index + 1) })
