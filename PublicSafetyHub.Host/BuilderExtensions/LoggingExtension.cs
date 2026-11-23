@@ -4,7 +4,6 @@ using PublicSafetyHub.Core.Configurations;
 using PublicSafetyHub.Data.Configurations;
 using PublicSafetyHub.Host.Logging;
 using Serilog;
-using Serilog.Formatting.Compact;
 using Serilog.Sinks.PostgreSQL;
 using Serilog.Sinks.PostgreSQL.ColumnWriters;
 
@@ -14,35 +13,6 @@ public static class LoggingExtension
 {
     extension(IHostApplicationBuilder builder)
     {
-        public void AddApplicationLogging(Action<IServiceProvider, LoggerConfiguration> configureOutput = null)
-        {
-            builder.Services.AddConfiguration<IApplicationLoggingOptions, ApplicationLoggingOptions>(builder.Configuration, applicationLoggingOptions =>
-            {
-                ArgumentException.ThrowIfNullOrWhiteSpace(applicationLoggingOptions.FilePath);
-                ArgumentOutOfRangeException.ThrowIfLessThan(applicationLoggingOptions.RetainedFileCountLimit, 1);
-                ArgumentOutOfRangeException.ThrowIfLessThan(applicationLoggingOptions.FileSizeLimitBytes, 1);
-            });
-
-            builder.Services.AddSerilog((services, logger) =>
-            {
-                var applicationLoggingOptions = services.GetRequiredService<IApplicationLoggingOptions>();
-
-                logger.ReadFrom.Configuration(builder.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .Enrich.With<TraceContextEnricher>()
-                    .WriteTo.Console()
-                    .WriteTo.File(new CompactJsonFormatter(), applicationLoggingOptions.FilePath,
-                        rollingInterval: RollingInterval.Day,
-                        fileSizeLimitBytes: applicationLoggingOptions.FileSizeLimitBytes,
-                        rollOnFileSizeLimit: true,
-                        retainedFileCountLimit: applicationLoggingOptions.RetainedFileCountLimit,
-                        shared: true);
-
-                configureOutput?.Invoke(services, logger);
-            });
-        }
-
         public void AddPostgreSqlLogging()
         {
             builder.Services.AddConfiguration<IPostgreSqlLoggingOptions, PostgreSqlLoggingOptions>(builder.Configuration, postgreSqlLoggingOptions =>
@@ -56,10 +26,15 @@ public static class LoggingExtension
                 ArgumentOutOfRangeException.ThrowIfGreaterThan(postgreSqlLoggingOptions.PeriodSeconds, 3600);
                 ArgumentException.ThrowIfNullOrWhiteSpace(builder.Configuration.GetConnectionString(postgreSqlLoggingOptions.ConnectionStringName));
             });
-            builder.AddApplicationLogging((services, logger) =>
+            builder.Services.AddSerilog((services, logger) =>
             {
                 var postgreSqlLoggingOptions = services.GetRequiredService<IPostgreSqlLoggingOptions>();
                 var connectionString = builder.Configuration.GetConnectionString(postgreSqlLoggingOptions.ConnectionStringName);
+
+                logger.ReadFrom.Configuration(builder.Configuration)
+                    .ReadFrom.Services(services)
+                    .Enrich.FromLogContext()
+                    .Enrich.With<TraceContextEnricher>();
 
                 logger.WriteTo.PostgreSQL(
                     connectionString,

@@ -6,7 +6,7 @@ Application services use Microsoft `ILogger<T>`; no custom write service is requ
 
 `Host/appsettings.json` sets Serilog minimum `Error` and overrides the `PublicSafetyHub` category prefix to `Warning`. Therefore application Information/Debug/Trace and library Warning messages are intentionally omitted. Existing logging calls remain in place for future configuration changes. There is no HTTP request/status/duration logging middleware.
 
-`ApplicationLoggingOptions` controls `FilePath`, `RetainedFileCountLimit` (30 files) and `FileSizeLimitBytes` (10 MiB). Files rotate daily and on size. The file count is a count, not a guarantee of 30 days. Paths are relative to the process working directory; use a persistent writable absolute path when deploying. Console output is also enabled. Serilog SelfLog is not configured.
+PostgreSQL is the only configured Serilog output. Serilog SelfLog is not configured.
 
 `PostgreSqlLoggingOptions` controls:
 
@@ -22,7 +22,7 @@ PublicSafetyHub uses one database and one EF context, PublicSafetyHubDbContext. 
 
 Apply EF migrations to the database before starting the application. The runtime account needs INSERT, SELECT and DELETE privileges for logging, admin reads and retention. Runtime logging does not create schemas, tables or indexes; automatic sink schema/table creation is disabled. LogConfiguration defines the logging table and indexes for EF migrations.
 
-Retention removes old database entries when the sink processes a batch; it is not a scheduled cleanup during an idle application. The bounded in-memory queue is not durable. A sudden process termination can lose queued DB events; an independent file sink records the same admitted messages. The host owns and disposes Serilog through DI on graceful shutdown. There is no bootstrap logger or outer try/catch/finally in Program.cs; early startup failures use the default host/runtime handling. File output is not automatically replayed into PostgreSQL.
+Retention removes old database entries when the sink processes a batch; it is not a scheduled cleanup during an idle application. The bounded in-memory queue is not durable, so a sudden process termination can lose queued DB events. The host owns and disposes Serilog through DI on graceful shutdown. There is no bootstrap logger or outer try/catch/finally in Program.cs; early startup failures use the default host/runtime handling.
 
 **Database lifecycle:** startup no longer calls EnsureDeleted or EnsureCreated. Database changes are managed through EF migrations applied separately; this change does not generate or apply a migration.
 
@@ -52,7 +52,7 @@ API DTO projections are defined in Application/Projections/LogProjection.cs and 
 
 ## Registration and MSSQL
 
-For PostgreSQL, call `builder.AddPostgreSqlLogging()` (includes file/console setup) and `builder.Services.AddGlobalExceptionHandling()` from Host/BuilderExtensions, then `app.UseExceptionHandler()` before request handling. Both logging options sections are required and registered through the existing Base `AddConfiguration<TInterface, TConfiguration>` helper, including validation. Logging consumers resolve `IApplicationLoggingOptions` / `IPostgreSqlLoggingOptions` from DI; they do not bind duplicate instances or silently substitute missing sections. Base retains only its general configuration helper; it contains no logging or exception-handling implementation or Serilog packages.
+For PostgreSQL, call `builder.AddPostgreSqlLogging()` and `builder.Services.AddGlobalExceptionHandling()` from Host/BuilderExtensions, then `app.UseExceptionHandler()` before request handling. PostgreSqlLoggingOptions is registered and validated through the existing Base `AddConfiguration<TInterface, TConfiguration>` helper. Base retains only its general configuration helper; it contains no logging or exception-handling implementation or Serilog packages.
 
 A future MSSQL implementation replaces PostgreSQL schema/mapping/output and the log read provider. Existing ILogger calls and the exception handler stay unchanged. Migrating the entire application, including pgvector search, is a separate change.
 
