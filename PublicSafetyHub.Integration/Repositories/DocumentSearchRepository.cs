@@ -5,14 +5,18 @@ using PublicSafetyHub.Integration.Repositories.Interfaces;
 
 namespace PublicSafetyHub.Integration.Repositories;
 
-public class DocumentSearchRepository(IOpenSearchClient client, IOpenSearchOptions options) : IDocumentSearchRepository
+public class DocumentSearchRepository(IOpenSearchClient openSearchClient, IOpenSearchOptions openSearchOptions) : IDocumentSearchRepository
 {
+    private const string ResourceAlreadyExistsErrorType = "resource_already_exists_exception";
+    private const string IndexNotFoundErrorType = "index_not_found_exception";
+    private const double TitleSearchBoost = 2;
+
     public async Task IndexAsync(SearchDocument document)
     {
         await EnsureIndexAsync();
 
-        var response = await client.IndexAsync(document, request => request
-            .Index(options.DocumentsIndex)
+        var response = await openSearchClient.IndexAsync(document, request => request
+            .Index(openSearchOptions.DocumentsIndex)
             .Id(document.Id));
 
         if (!response.IsValid)
@@ -23,17 +27,17 @@ public class DocumentSearchRepository(IOpenSearchClient client, IOpenSearchOptio
 
     public async Task<IReadOnlyList<SearchDocument>> SearchAsync(string searchText, int limit)
     {
-        var response = await client.SearchAsync<SearchDocument>(request => request
-            .Index(options.DocumentsIndex)
+        var response = await openSearchClient.SearchAsync<SearchDocument>(request => request
+            .Index(openSearchOptions.DocumentsIndex)
             .AllowPartialSearchResults(false)
             .Size(limit)
             .Query(query => query.MultiMatch(match => match
                 .Query(searchText)
                 .Fields(fields => fields
-                    .Field(document => document.Title, 2)
+                    .Field(document => document.Title, TitleSearchBoost)
                     .Field(document => document.Body)))));
 
-        if (response.ApiCall?.HttpStatusCode == 404 && response.ServerError?.Error?.Type == "index_not_found_exception")
+        if (response.ApiCall?.HttpStatusCode == 404 && response.ServerError?.Error?.Type == IndexNotFoundErrorType)
         {
             return [];
         }
@@ -48,7 +52,7 @@ public class DocumentSearchRepository(IOpenSearchClient client, IOpenSearchOptio
 
     private async Task EnsureIndexAsync()
     {
-        var existsResponse = await client.Indices.ExistsAsync(options.DocumentsIndex);
+        var existsResponse = await openSearchClient.Indices.ExistsAsync(openSearchOptions.DocumentsIndex);
 
         if (!existsResponse.IsValid)
         {
@@ -60,7 +64,7 @@ public class DocumentSearchRepository(IOpenSearchClient client, IOpenSearchOptio
             return;
         }
 
-        var response = await client.Indices.CreateAsync(options.DocumentsIndex, request => request
+        var response = await openSearchClient.Indices.CreateAsync(openSearchOptions.DocumentsIndex, request => request
             .Map<SearchDocument>(mapping => mapping
                 .Dynamic(DynamicMapping.Strict)
                 .Properties(properties => properties
@@ -69,7 +73,7 @@ public class DocumentSearchRepository(IOpenSearchClient client, IOpenSearchOptio
                     .Text(field => field.Name(document => document.Body).Analyzer("czech"))
                     .Keyword(field => field.Name(document => document.Url).Index(false)))));
 
-        if (!response.IsValid && response.ServerError?.Error?.Type != "resource_already_exists_exception")
+        if (!response.IsValid && response.ServerError?.Error?.Type != ResourceAlreadyExistsErrorType)
         {
             throw new InvalidOperationException("OpenSearch document index could not be created.");
         }

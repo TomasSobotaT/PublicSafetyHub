@@ -12,14 +12,14 @@ public static class OpenSearchServiceCollectionExtension
         {
             services.TryAddSingleton<IOpenSearchClient>(provider =>
             {
-                var options = provider.GetRequiredService<IOpenSearchOptions>();
+                var openSearchOptions = provider.GetRequiredService<IOpenSearchOptions>();
 
-                if (!Uri.TryCreate(options.Url, UriKind.Absolute, out var url))
+                if (!Uri.TryCreate(openSearchOptions.Url, UriKind.Absolute, out var url))
                 {
                     throw new InvalidOperationException("OpenSearchOptions:Url must be an HTTPS service address without credentials, path, query or fragment.");
                 }
 
-                var settings = new ConnectionSettings(url).BasicAuthentication(options.Username, options.Password);
+                var settings = new ConnectionSettings(url).BasicAuthentication(openSearchOptions.Username, openSearchOptions.Password);
 
                 return new OpenSearchClient(settings);
             });

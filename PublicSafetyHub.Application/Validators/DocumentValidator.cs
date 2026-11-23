@@ -7,7 +7,6 @@ public class DocumentValidator : AbstractValidator<Document>
 {
     public DocumentValidator()
     {
-        RuleFor(document => document.Id).NotEmpty();
         RuleFor(document => document.Title).NotEmpty().MaximumLength(512);
         RuleFor(document => document.Body).NotEmpty();
         RuleFor(document => document.Url).MaximumLength(2048)

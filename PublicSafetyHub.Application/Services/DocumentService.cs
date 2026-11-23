@@ -13,7 +13,7 @@ public class DocumentService(
     IValidator<Document> validator,
     IMapper mapper) : IDocumentService
 {
-    public async Task<ApplicationResult<NoValueResult>> UpsertAsync(Document document)
+    public async Task<ApplicationResult<Guid>> SaveDocumentAsync(Document document)
     {
         if (document is null)
         {
@@ -28,12 +28,18 @@ public class DocumentService(
         }
 
         var searchDocument = mapper.Map<SearchDocument>(document);
+
+        if (searchDocument.Id == Guid.Empty)
+        {
+            searchDocument.Id = Guid.CreateVersion7();
+        }
+
         await repository.IndexAsync(searchDocument);
 
-        return NoValueResult.Value;
+        return searchDocument.Id;
     }
 
-    public async Task<ApplicationResult<IReadOnlyList<Document>>> SearchAsync(string searchText, int limit = 5)
+    public async Task<ApplicationResult<IReadOnlyList<Document>>> SearchDocumentsAsync(string searchText, int limit = 5)
     {
         if (string.IsNullOrWhiteSpace(searchText) || searchText.Length > 2048)
         {

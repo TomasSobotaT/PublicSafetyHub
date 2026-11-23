@@ -1,6 +1,6 @@
 # OpenSearch dokumenty pro AI chat
 
-Dokumenty jsou nezávislé na článcích a ukládají se pouze do vlastního OpenSearch indexu. PostgreSQL, import článků a jejich embeddingy se nemění. Zatím nejsou implementované žádné endpointy pro dokumenty ani AI chat. Budoucí upload controller může volat `IDocumentService.UpsertAsync`; interní hledání může používat `IDocumentService.SearchAsync`.
+Dokumenty jsou nezávislé na článcích a ukládají se pouze do vlastního OpenSearch indexu. PostgreSQL, import článků a jejich embeddingy se nemění. Zatím nejsou implementované žádné endpointy pro dokumenty ani AI chat. Budoucí upload controller může volat `IDocumentService.SaveDocumentAsync`; interní hledání může používat `IDocumentService.SearchDocumentsAsync`.
 
 ## Konfigurace Aivenu
 
@@ -23,19 +23,23 @@ Klient je singleton vytvořený při prvním použití integrace. Prázdné při
 ```csharp
 var document = new Document
 {
-    Id = Guid.NewGuid(),
     Title = "Postup při mimořádné události",
     Body = "Celý text dokumentu…",
     Url = "https://example.cz/postup"
 };
 
-var saved = await documentService.UpsertAsync(document);
-var found = await documentService.SearchAsync("mimořádná událost", limit: 5);
+var saved = await documentService.SaveDocumentAsync(document);
+if (saved.IsSuccess)
+{
+    document.Id = saved.Value;
+}
+
+var found = await documentService.SearchDocumentsAsync("mimořádná událost", limit: 5);
 ```
 
 `Document` je v `PublicSafetyHub.Models.Documents`, služba je dostupná přes `PublicSafetyHub.Application.Services.Interfaces.IDocumentService`. Obě operace vracejí `ApplicationResult`: před čtením `Value` ověř `IsSuccess`; validační chyby jsou v `Error`. Technická selhání OpenSearch vyvolávají výjimku pro stávající exception handling.
 
-- `Id`: neprázdné GUID, přidělené volajícím. Pro opakovaný pokus či aktualizaci zachovej stejné ID. Stejné ID nahradí celý předchozí dokument, včetně URL; stejné URL s jiným ID je jiný dokument.
+- `Id`: pro nový dokument ponech `Guid.Empty`; služba po validaci obsahu vygeneruje UUID v7 přes `Guid.CreateVersion7()`. Úspěšný výsledek `SaveDocumentAsync` vrací ID uloženého dokumentu. Vstupní objekt se nemění, proto si ID z výsledku uchovej pro další aktualizace. UUID v7 obsahuje UTC časovou značku svého vytvoření; při aktualizaci se ID ani tato značka nemění. Existující ID služba zachová a celý dokument nahradí, včetně URL. Při opakování požadavku bez ID vzniká nový dokument; pokud potřebuješ zachovat ID i při nejistém výsledku předchozího zápisu, přiděl je před prvním voláním. Stejné URL s jiným ID je jiný dokument.
 - `Title`: povinný neprázdný titulek, nejvýše 512 znaků.
 - `Body`: povinný neprázdný text.
 - `Url`: volitelné absolutní HTTP(S) URL bez přihlašovacích údajů, nejvýše 2048 znaků. URL se ukládá pro citaci zdroje, neprohledává se.
