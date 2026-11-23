@@ -5,6 +5,8 @@ using PublicSafetyHub.Core.Specifications;
 using PublicSafetyHub.Models.Articles;
 using PublicSafetyHub.Models.Logging;
 using PublicSafetyHub.Models.Users;
+using PublicSafetyHub.Models.Documents;
+using PublicSafetyHub.Integration.IntegrationModels;
 
 namespace PublicSafetyHub.Application.Automapper;
 
@@ -12,10 +14,11 @@ public class AutomapperProfile : Profile
 {
     public AutomapperProfile()
     {
-        CreateMap(typeof(PagedResult<>), typeof(PagedResult<>));
         MapArticle(this);
         MapUser(this);
         MapLog(this);
+        MapDocument(this);
+        CreateMap(typeof(PagedResult<>), typeof(PagedResult<>));
     }
 
     private static void MapArticle(IProfileExpression profile)
@@ -37,5 +40,10 @@ public class AutomapperProfile : Profile
             .ForMember(destination => destination.HasException,
                 options => options.MapFrom(source => !string.IsNullOrWhiteSpace(source.Exception)));
         profile.CreateMap<LogFilter, LogSpecification>();
+    }
+
+    private static void MapDocument(IProfileExpression profile)
+    {
+        profile.CreateMap<Document, SearchDocument>().ReverseMap();
     }
 }

@@ -12,6 +12,7 @@ builder.Services.AddDependencyInjectionRegistration(builder.Configuration);
 builder.Services.AddHttpClientRegistration();
 builder.Services.AddAuthRegistration();
 builder.Services.AddAiRegistration();
+builder.Services.AddOpenSearchRegistration();
 
 var app = builder.Build();
 

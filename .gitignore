@@ -370,4 +370,7 @@ FodyWeavers.xsd
 *.md
 !/docs/authentication.md
 !/docs/logging.md
+!/docs/opensearch.md
+!/docs/superpowers/specs/2026-11-23-opensearch-documents-design.md
+!/docs/superpowers/plans/2026-11-23-opensearch-documents.md
 !/docs/superpowers/plans/2026-11-20-shared-logging.md

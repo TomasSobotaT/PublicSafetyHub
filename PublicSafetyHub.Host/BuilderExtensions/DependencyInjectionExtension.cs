@@ -15,6 +15,7 @@ using PublicSafetyHub.Core.Repositories;
 using PublicSafetyHub.Data.Context;
 using PublicSafetyHub.Integration.Repositories.Interfaces;
 using PublicSafetyHub.Integration.Repositories;
+using PublicSafetyHub.Application.Automapper;
 
 namespace PublicSafetyHub.Host.BuilderExtensions;
 
@@ -41,6 +42,7 @@ public static class DependencyInjectionExtension
             services.TryAddScoped<IHttpUserContext>(provider => provider.GetRequiredService<IUserContext>());
             services.TryAddScoped<IAuthService, AuthService>();
             services.TryAddScoped<IArticleService, ArticleService>();
+            services.TryAddScoped<IDocumentService, DocumentService>();
             services.TryAddScoped<ILogService, LogService>();
             services.TryAddScoped<IUserService, UserService>();
             services.TryAddScoped<IArticleEmbeddingService, ArticleEmbeddingService>();
@@ -54,6 +56,7 @@ public static class DependencyInjectionExtension
         {
             services.TryAddScoped<IUserRepository, UserRepository>();
             services.TryAddScoped<IArticleRepository, ArticleRepository>();
+            services.TryAddScoped<IDocumentSearchRepository, DocumentSearchRepository>();
             services.TryAddScoped<ILogRepository, LogRepository>();
             services.TryAddScoped<IArmyArticlesRepository, ArmyArticlesRepository>();
             services.TryAddScoped<IPoliceArticlesRepository, PoliceArticlesRepository>();
@@ -85,6 +88,7 @@ public static class DependencyInjectionExtension
             services.AddConfiguration<IFirefightersArticleImportOptions, FirefightersArticleImportOptions>(configuration);
             services.AddConfiguration<IArticleImportOptions, ArticleImportOptions>(configuration);
             services.AddConfiguration<IOpenAiOptions, OpenAiOptions>(configuration);
+            services.AddConfiguration<IOpenSearchOptions, OpenSearchOptions>(configuration);
             services.AddConfiguration<IArticleEmbeddingOptions, ArticleEmbeddingOptions>(configuration);
             services.AddConfiguration<IAuthOptions, AuthOptions>(configuration);
         }
