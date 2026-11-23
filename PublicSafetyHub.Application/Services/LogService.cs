@@ -11,14 +11,14 @@ using PublicSafetyHub.Base.Filtering;
 namespace PublicSafetyHub.Application.Services;
 
 public class LogService(
-    ILogRepository repository,
+    ILogRepository logRepository,
     IMapper mapper,
-    IValidator<PaginationRequest> paginationValidator,
-    IValidator<LogFilter> filterValidator) : ILogService
+    IValidator<PaginationRequest> paginationRequestValidator,
+    IValidator<LogFilter> logFilterValidator) : ILogService
 {
     public async Task<ApplicationResult<PagedResult<Log>>> GetLogsAsync(FilteredRequest<LogFilter> request)
     {
-        var paginationValidation = await paginationValidator.ValidateAsync(request);
+        var paginationValidation = await paginationRequestValidator.ValidateAsync(request);
 
         if (!paginationValidation.IsValid)
         {
@@ -27,7 +27,7 @@ public class LogService(
 
         if (request.Filter is not null)
         {
-            var filterValidation = await filterValidator.ValidateAsync(request.Filter);
+            var filterValidation = await logFilterValidator.ValidateAsync(request.Filter);
 
             if (!filterValidation.IsValid)
             {
@@ -37,12 +37,12 @@ public class LogService(
 
         var specification = request.Filter is null ? new LogSpecification() : mapper.Map<LogSpecification>(request.Filter);
 
-        return await repository.GetPagedAsync(specification, request, projection: LogProjection.Log);
+        return await logRepository.GetPagedAsync(specification, request, projection: LogProjection.Log);
     }
 
     public async Task<ApplicationResult<PagedResult<string>>> GetCategoriesAsync(FilteredRequest<LogCategoryFilter> request)
     {
-        var validation = await paginationValidator.ValidateAsync(request);
+        var validation = await paginationRequestValidator.ValidateAsync(request);
 
         if (!validation.IsValid)
         {
@@ -54,12 +54,12 @@ public class LogService(
             return ResultHelper.Validation("SearchValue must not exceed 512 characters.");
         }
 
-        return await repository.GetCategoriesAsync(request.Filter?.SearchValue, request);
+        return await logRepository.GetCategoriesAsync(request.Filter?.SearchValue, request);
     }
 
     public async Task<ApplicationResult<Log>> GetLogAsync(Guid id)
     {
-        var logEntity = await repository.GetAsync(id);
+        var logEntity = await logRepository.GetAsync(id);
         return logEntity is null
             ? ResultHelper.NotFound("Log was not found.")
             : mapper.Map<Log>(logEntity);

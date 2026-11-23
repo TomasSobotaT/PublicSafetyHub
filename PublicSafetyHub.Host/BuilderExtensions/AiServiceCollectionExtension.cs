@@ -16,21 +16,21 @@ public static class AiServiceCollectionExtension
         {
             services.TryAddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(provider =>
             {
-                var options = provider.GetRequiredService<IOpenAiOptions>();
-                ArgumentException.ThrowIfNullOrWhiteSpace(options.ApiKey);
-                ArgumentException.ThrowIfNullOrWhiteSpace(options.EmbeddingModel);
+                var openAiOptions = provider.GetRequiredService<IOpenAiOptions>();
+                ArgumentException.ThrowIfNullOrWhiteSpace(openAiOptions.ApiKey);
+                ArgumentException.ThrowIfNullOrWhiteSpace(openAiOptions.EmbeddingModel);
 
-                return new OpenAIClient(options.ApiKey)
-                    .GetEmbeddingClient(options.EmbeddingModel)
+                return new OpenAIClient(openAiOptions.ApiKey)
+                    .GetEmbeddingClient(openAiOptions.EmbeddingModel)
                     .AsIEmbeddingGenerator();
             });
 
             services.TryAddSingleton<Tokenizer>(provider =>
             {
-                var options = provider.GetRequiredService<IOpenAiOptions>();
-                ArgumentException.ThrowIfNullOrWhiteSpace(options.EmbeddingModel);
+                var openAiOptions = provider.GetRequiredService<IOpenAiOptions>();
+                ArgumentException.ThrowIfNullOrWhiteSpace(openAiOptions.EmbeddingModel);
 
-                return TiktokenTokenizer.CreateForModel(options.EmbeddingModel);
+                return TiktokenTokenizer.CreateForModel(openAiOptions.EmbeddingModel);
             });
 
             services.TryAddSingleton<Lazy<IEmbeddingGenerator<string, Embedding<float>>>>(provider =>

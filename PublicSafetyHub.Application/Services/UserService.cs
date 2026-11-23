@@ -15,9 +15,9 @@ using PublicSafetyHub.Models.Users;
 namespace PublicSafetyHub.Application.Services;
 
 public class UserService(
-    IUserRepository repository,
+    IUserRepository userRepository,
     IMapper mapper,
-    IValidator<PaginationRequest> paginationValidator,
+    IValidator<PaginationRequest> paginationRequestValidator,
     UserManager<UserEntity> userManager,
     IOpenIddictAuthorizationManager authorizationManager,
     IOpenIddictTokenManager tokenManager,
@@ -26,7 +26,7 @@ public class UserService(
 {
     public async Task<ApplicationResult<PagedResult<User>>> GetUsersAsync(FilteredRequest<UserFilter> request)
     {
-        var validation = await paginationValidator.ValidateAsync(request);
+        var validation = await paginationRequestValidator.ValidateAsync(request);
 
         if (!validation.IsValid)
         {
@@ -39,7 +39,7 @@ public class UserService(
         }
 
         var specification = request.Filter is null ? new UserSpecification() : mapper.Map<UserSpecification>(request.Filter);
-        return await repository.GetPagedAsync(specification, request, user => new User
+        return await userRepository.GetPagedAsync(specification, request, user => new User
         {
             Id = user.Id,
             Email = user.Email,
@@ -73,7 +73,7 @@ public class UserService(
             return ResultHelper.Validation("You cannot block or delete your own account through user administration.");
         }
 
-        var user = await repository.GetAsync(id);
+        var user = await userRepository.GetAsync(id);
 
         if (user is null)
         {
@@ -84,12 +84,12 @@ public class UserService(
 
         if (delete)
         {
-            repository.Delete(user);
+            userRepository.Delete(user);
         }
         else
         {
             user.IsBlocked = isBlocked;
-            repository.Update(user);
+            userRepository.Update(user);
         }
 
         if (delete || isBlocked)

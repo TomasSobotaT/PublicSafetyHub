@@ -1,7 +1,7 @@
 using AutoMapper;
 using FluentValidation;
 using Pgvector;
-using PublicSafetyHub.AI.Services;
+using PublicSafetyHub.Core.Constants;
 using PublicSafetyHub.AI.Services.Interfaces;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.Results;
@@ -53,9 +53,9 @@ public class ArticleService(
 
             var searchValue = specification.SearchValue.Trim();
 
-            if (embeddingService.GetTokenCount(searchValue) > EmbeddingService.MaxInputTokens)
+            if (embeddingService.GetTokenCount(searchValue) > EmbeddingConstants.MaxInputTokens)
             {
-                return ResultHelper.Validation($"SearchValue must not exceed {EmbeddingService.MaxInputTokens} tokens for semantic search.");
+                return ResultHelper.Validation($"SearchValue must not exceed {EmbeddingConstants.MaxInputTokens} tokens for semantic search.");
             }
 
             var vector = await embeddingService.GenerateAsync(searchValue);

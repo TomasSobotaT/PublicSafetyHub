@@ -8,7 +8,7 @@ using PublicSafetyHub.Base.Results;
 
 namespace PublicSafetyHub.Host.Middlewares;
 
-public sealed class AuthorizationLoginMiddleware(IAuthTransactionService authTransactions, IAuthOptions options) : IMiddleware
+public sealed class AuthorizationLoginMiddleware(IAuthTransactionService authTransactions, IAuthOptions authOptions) : IMiddleware
 {
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
@@ -27,7 +27,7 @@ public sealed class AuthorizationLoginMiddleware(IAuthTransactionService authTra
         context.Response.Headers.XContentTypeOptions = "nosniff";
         context.Response.Headers["Referrer-Policy"] = "no-referrer";
 
-        var issuerOrigin = new Uri(options.Issuer).GetLeftPart(UriPartial.Authority);
+        var issuerOrigin = new Uri(authOptions.Issuer).GetLeftPart(UriPartial.Authority);
         var requestOrigin = $"{request.Scheme}://{request.Host}";
 
         if (!request.IsHttps || !string.Equals(requestOrigin, issuerOrigin, StringComparison.Ordinal))

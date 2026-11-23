@@ -16,27 +16,27 @@ public static class LoggingExtension
     {
         public void AddApplicationLogging(Action<IServiceProvider, LoggerConfiguration> configureOutput = null)
         {
-            builder.Services.AddConfiguration<IApplicationLoggingOptions, ApplicationLoggingOptions>(builder.Configuration, options =>
+            builder.Services.AddConfiguration<IApplicationLoggingOptions, ApplicationLoggingOptions>(builder.Configuration, applicationLoggingOptions =>
             {
-                ArgumentException.ThrowIfNullOrWhiteSpace(options.FilePath);
-                ArgumentOutOfRangeException.ThrowIfLessThan(options.RetainedFileCountLimit, 1);
-                ArgumentOutOfRangeException.ThrowIfLessThan(options.FileSizeLimitBytes, 1);
+                ArgumentException.ThrowIfNullOrWhiteSpace(applicationLoggingOptions.FilePath);
+                ArgumentOutOfRangeException.ThrowIfLessThan(applicationLoggingOptions.RetainedFileCountLimit, 1);
+                ArgumentOutOfRangeException.ThrowIfLessThan(applicationLoggingOptions.FileSizeLimitBytes, 1);
             });
 
             builder.Services.AddSerilog((services, logger) =>
             {
-                var options = services.GetRequiredService<IApplicationLoggingOptions>();
+                var applicationLoggingOptions = services.GetRequiredService<IApplicationLoggingOptions>();
 
                 logger.ReadFrom.Configuration(builder.Configuration)
                     .ReadFrom.Services(services)
                     .Enrich.FromLogContext()
                     .Enrich.With<TraceContextEnricher>()
                     .WriteTo.Console()
-                    .WriteTo.File(new CompactJsonFormatter(), options.FilePath,
+                    .WriteTo.File(new CompactJsonFormatter(), applicationLoggingOptions.FilePath,
                         rollingInterval: RollingInterval.Day,
-                        fileSizeLimitBytes: options.FileSizeLimitBytes,
+                        fileSizeLimitBytes: applicationLoggingOptions.FileSizeLimitBytes,
                         rollOnFileSizeLimit: true,
-                        retainedFileCountLimit: options.RetainedFileCountLimit,
+                        retainedFileCountLimit: applicationLoggingOptions.RetainedFileCountLimit,
                         shared: true);
 
                 configureOutput?.Invoke(services, logger);
@@ -45,21 +45,21 @@ public static class LoggingExtension
 
         public void AddPostgreSqlLogging()
         {
-            builder.Services.AddConfiguration<IPostgreSqlLoggingOptions, PostgreSqlLoggingOptions>(builder.Configuration, options =>
+            builder.Services.AddConfiguration<IPostgreSqlLoggingOptions, PostgreSqlLoggingOptions>(builder.Configuration, postgreSqlLoggingOptions =>
             {
-                ArgumentException.ThrowIfNullOrWhiteSpace(options.ConnectionStringName);
-                ArgumentOutOfRangeException.ThrowIfLessThan(options.RetentionDays, 1);
-                ArgumentOutOfRangeException.ThrowIfGreaterThan(options.RetentionDays, 36500);
-                ArgumentOutOfRangeException.ThrowIfLessThan(options.BatchSizeLimit, 1);
-                ArgumentOutOfRangeException.ThrowIfLessThan(options.QueueLimit, options.BatchSizeLimit);
-                ArgumentOutOfRangeException.ThrowIfLessThan(options.PeriodSeconds, 1);
-                ArgumentOutOfRangeException.ThrowIfGreaterThan(options.PeriodSeconds, 3600);
-                ArgumentException.ThrowIfNullOrWhiteSpace(builder.Configuration.GetConnectionString(options.ConnectionStringName));
+                ArgumentException.ThrowIfNullOrWhiteSpace(postgreSqlLoggingOptions.ConnectionStringName);
+                ArgumentOutOfRangeException.ThrowIfLessThan(postgreSqlLoggingOptions.RetentionDays, 1);
+                ArgumentOutOfRangeException.ThrowIfGreaterThan(postgreSqlLoggingOptions.RetentionDays, 36500);
+                ArgumentOutOfRangeException.ThrowIfLessThan(postgreSqlLoggingOptions.BatchSizeLimit, 1);
+                ArgumentOutOfRangeException.ThrowIfLessThan(postgreSqlLoggingOptions.QueueLimit, postgreSqlLoggingOptions.BatchSizeLimit);
+                ArgumentOutOfRangeException.ThrowIfLessThan(postgreSqlLoggingOptions.PeriodSeconds, 1);
+                ArgumentOutOfRangeException.ThrowIfGreaterThan(postgreSqlLoggingOptions.PeriodSeconds, 3600);
+                ArgumentException.ThrowIfNullOrWhiteSpace(builder.Configuration.GetConnectionString(postgreSqlLoggingOptions.ConnectionStringName));
             });
             builder.AddApplicationLogging((services, logger) =>
             {
-                var options = services.GetRequiredService<IPostgreSqlLoggingOptions>();
-                var connectionString = builder.Configuration.GetConnectionString(options.ConnectionStringName);
+                var postgreSqlLoggingOptions = services.GetRequiredService<IPostgreSqlLoggingOptions>();
+                var connectionString = builder.Configuration.GetConnectionString(postgreSqlLoggingOptions.ConnectionStringName);
 
                 logger.WriteTo.PostgreSQL(
                     connectionString,
@@ -78,10 +78,10 @@ public static class LoggingExtension
                     schemaName: LogConfiguration.SchemaName,
                     needAutoCreateTable: false,
                     needAutoCreateSchema: false,
-                    batchSizeLimit: options.BatchSizeLimit,
-                    queueLimit: options.QueueLimit,
-                    period: TimeSpan.FromSeconds(options.PeriodSeconds),
-                    retentionTime: TimeSpan.FromDays(options.RetentionDays));
+                    batchSizeLimit: postgreSqlLoggingOptions.BatchSizeLimit,
+                    queueLimit: postgreSqlLoggingOptions.QueueLimit,
+                    period: TimeSpan.FromSeconds(postgreSqlLoggingOptions.PeriodSeconds),
+                    retentionTime: TimeSpan.FromDays(postgreSqlLoggingOptions.RetentionDays));
             });
         }
     }

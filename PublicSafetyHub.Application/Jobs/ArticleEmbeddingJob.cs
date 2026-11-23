@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using PublicSafetyHub.AI.Services;
+using PublicSafetyHub.Core.Constants;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Core.Configurations;
 
@@ -9,13 +9,13 @@ namespace PublicSafetyHub.Application.Jobs;
 
 public class ArticleEmbeddingJob(
     IServiceScopeFactory scopeFactory,
-    IArticleEmbeddingOptions options,
+    IArticleEmbeddingOptions articleEmbeddingOptions,
     IOpenAiOptions openAiOptions,
     ILogger<ArticleEmbeddingJob> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (!options.Enabled)
+        if (!articleEmbeddingOptions.Enabled)
         {
             return;
         }
@@ -28,11 +28,11 @@ public class ArticleEmbeddingJob(
 
         if (HasInvalidConfiguration())
         {
-            logger.LogError("Invalid article embedding settings: use an interval from 1 ms to 49 days, a batch size of 1 to {MaxBatchSize}, and a model name up to 100 characters.", EmbeddingService.MaxBatchSize);
+            logger.LogError("Invalid article embedding settings: use an interval from 1 ms to 49 days, a batch size of 1 to {MaxBatchSize}, and a model name up to 100 characters.", EmbeddingConstants.MaxBatchSize);
             return;
         }
 
-        using var timer = new PeriodicTimer(TimeSpan.FromHours(options.IntervalHours));
+        using var timer = new PeriodicTimer(TimeSpan.FromHours(articleEmbeddingOptions.IntervalHours));
 
         try
         {
@@ -44,7 +44,7 @@ public class ArticleEmbeddingJob(
                 }
 
                 await GenerateMissingEmbeddingsAsync();
-                logger.LogInformation("Article embedding check finished; configured interval is {IntervalHours} hours.", options.IntervalHours);
+                logger.LogInformation("Article embedding check finished; configured interval is {IntervalHours} hours.", articleEmbeddingOptions.IntervalHours);
             }
             while (await timer.WaitForNextTickAsync(stoppingToken));
         }
@@ -56,11 +56,11 @@ public class ArticleEmbeddingJob(
 
     private bool HasInvalidConfiguration()
     {
-        return !double.IsFinite(options.IntervalHours)
-            || options.IntervalHours < TimeSpan.FromMilliseconds(1).TotalHours
-            || options.IntervalHours > 24 * 49
-            || options.BatchSize < 1
-            || options.BatchSize > EmbeddingService.MaxBatchSize
+        return !double.IsFinite(articleEmbeddingOptions.IntervalHours)
+            || articleEmbeddingOptions.IntervalHours < TimeSpan.FromMilliseconds(1).TotalHours
+            || articleEmbeddingOptions.IntervalHours > 24 * 49
+            || articleEmbeddingOptions.BatchSize < 1
+            || articleEmbeddingOptions.BatchSize > EmbeddingConstants.MaxBatchSize
             || string.IsNullOrWhiteSpace(openAiOptions.EmbeddingModel)
             || openAiOptions.EmbeddingModel.Length > 100;
     }

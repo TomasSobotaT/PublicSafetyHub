@@ -3,11 +3,11 @@ using PublicSafetyHub.Core.Configurations;
 
 namespace PublicSafetyHub.Integration.Clients;
 
-public class PoliceArticlesClient(HttpClient httpClient, IPoliceArticleImportOptions options) : IPoliceArticlesClient
+public class PoliceArticlesClient(HttpClient httpClient, IPoliceArticleImportOptions policeArticleImportOptions) : IPoliceArticlesClient
 {
     public Task<HttpResponseMessage> GetListAsync(int pageNumber)
     {
-        return httpClient.GetAsync($"{options.ListPath}?page={pageNumber.ToString(CultureInfo.InvariantCulture)}");
+        return httpClient.GetAsync($"{policeArticleImportOptions.ListPath}?page={pageNumber.ToString(CultureInfo.InvariantCulture)}");
     }
 
     public Task<HttpResponseMessage> GetArticleAsync(string originUrl)

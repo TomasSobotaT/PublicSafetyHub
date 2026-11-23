@@ -10,7 +10,7 @@ using PublicSafetyHub.Integration.Clients;
 
 namespace PublicSafetyHub.Integration.Repositories;
 
-public class ArmyArticlesRepository(IArmyArticlesClient armyArticlesClient, IArmyArticleImportOptions options) : IArmyArticlesRepository
+public class ArmyArticlesRepository(IArmyArticlesClient armyArticlesClient, IArmyArticleImportOptions armyArticleImportOptions) : IArmyArticlesRepository
 {
     public async Task<IReadOnlyList<ArmyArticle>> GetArticlesAsync()
     {
@@ -23,7 +23,7 @@ public class ArmyArticlesRepository(IArmyArticlesClient armyArticlesClient, IArm
         var xDocument = await XDocument.LoadAsync(xmlReader, LoadOptions.None, CancellationToken.None);
         var channelXElement = xDocument.Element("rss")?.Element("channel") ?? throw new InvalidDataException("Army feed does not contain an RSS channel.");
 
-        var baseUrl = new Uri(options.BaseUrl);
+        var baseUrl = new Uri(armyArticleImportOptions.BaseUrl);
         var articles = new List<ArmyArticle>();
         var uniqueArticlesUrl = new HashSet<string>(StringComparer.Ordinal);
 

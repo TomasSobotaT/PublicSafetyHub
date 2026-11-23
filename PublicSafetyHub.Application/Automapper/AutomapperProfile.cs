@@ -44,6 +44,8 @@ public class AutomapperProfile : Profile
 
     private static void MapDocument(IProfileExpression profile)
     {
-        profile.CreateMap<Document, SearchDocument>().ReverseMap();
+        profile.CreateMap<Document, SearchDocument>()
+            .ForMember(destination => destination.Embedding, options => options.Ignore())
+            .ReverseMap();
     }
 }

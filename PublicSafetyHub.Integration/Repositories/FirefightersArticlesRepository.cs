@@ -13,7 +13,7 @@ using PublicSafetyHub.Integration.IntegrationModels;
 namespace PublicSafetyHub.Integration.Repositories;
 
 public class FirefightersArticlesRepository(
-    IFirefightersArticleImportOptions options,
+    IFirefightersArticleImportOptions firefightersArticleImportOptions,
     IFirefightersArticlesClient articlesClient) : IFirefightersArticlesRepository
 {
     private const int ImapTimeoutMilliseconds = 60_000;
@@ -29,8 +29,8 @@ public class FirefightersArticlesRepository(
         using var client = new ImapClient();
         client.Timeout = ImapTimeoutMilliseconds;
 
-        await client.ConnectAsync(options.ImapHost, options.ImapPort, SecureSocketOptions.SslOnConnect);
-        await client.AuthenticateAsync(options.Username, options.Password);
+        await client.ConnectAsync(firefightersArticleImportOptions.ImapHost, firefightersArticleImportOptions.ImapPort, SecureSocketOptions.SslOnConnect);
+        await client.AuthenticateAsync(firefightersArticleImportOptions.Username, firefightersArticleImportOptions.Password);
         var inbox = client.Inbox;
         await inbox.OpenAsync(FolderAccess.ReadOnly);
 

@@ -15,13 +15,13 @@ public class FirefightersArticleImportService(
     IFirefightersArticlesRepository firefightersArticlesRepository,
     IArticleRepository articleRepository,
     IUnitOfWork unitOfWork,
-    IValidator<FirefightersArticle> validator,
-    IFirefightersArticleImportOptions options,
+    IValidator<FirefightersArticle> firefightersArticleValidator,
+    IFirefightersArticleImportOptions firefightersArticleImportOptions,
     ILogger<FirefightersArticleImportService> logger) : IFirefightersArticleImportService
 {
     public async Task ImportAsync()
     {
-        if (string.IsNullOrWhiteSpace(options.Username) || string.IsNullOrWhiteSpace(options.Password))
+        if (string.IsNullOrWhiteSpace(firefightersArticleImportOptions.Username) || string.IsNullOrWhiteSpace(firefightersArticleImportOptions.Password))
         {
             logger.LogWarning("Firefighters article import skipped: IMAP credentials are missing.");
             return;
@@ -50,7 +50,7 @@ public class FirefightersArticleImportService(
             try
             {
                 article = await firefightersArticlesRepository.GetArticleAsync(originUrl);
-                var result = await validator.ValidateAsync(article);
+                var result = await firefightersArticleValidator.ValidateAsync(article);
 
                 if (!result.IsValid)
                 {

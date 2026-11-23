@@ -9,7 +9,7 @@ using PublicSafetyHub.Integration.Clients;
 
 namespace PublicSafetyHub.Integration.Repositories;
 
-public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient, IPoliceArticleImportOptions options) : IPoliceArticlesRepository
+public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient, IPoliceArticleImportOptions policeArticleImportOptions) : IPoliceArticlesRepository
 {
     public async Task<IReadOnlyList<PoliceArticleLink>> GetListAsync(int pageNumber)
     {
@@ -44,7 +44,7 @@ public class PoliceArticlesRepository(IPoliceArticlesClient policeArticlesClient
             return [];
         }
 
-        var baseUrl = new Uri(options.BaseUrl);
+        var baseUrl = new Uri(policeArticleImportOptions.BaseUrl);
         var policeArticleLinks = new List<PoliceArticleLink>();
 
         foreach (var node in articleHtmlNodes)

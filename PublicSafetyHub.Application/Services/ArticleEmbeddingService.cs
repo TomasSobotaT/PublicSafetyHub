@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Pgvector;
-using PublicSafetyHub.AI.Services;
+using PublicSafetyHub.Core.Constants;
 using PublicSafetyHub.AI.Services.Interfaces;
 using PublicSafetyHub.Application.Services.Interfaces;
 using PublicSafetyHub.Base.UnitOfWork;
@@ -14,13 +14,13 @@ public class ArticleEmbeddingService(
     IArticleRepository articleRepository,
     IEmbeddingService embeddingService,
     IUnitOfWork unitOfWork,
-    IArticleEmbeddingOptions options,
+    IArticleEmbeddingOptions articleEmbeddingOptions,
     ILogger<ArticleEmbeddingService> logger)
     : IArticleEmbeddingService
 {
     public async Task<int?> GenerateBatchAsync(int lastCheckedArticleId)
     {
-        var articles = await articleRepository.GetArtíclesWithoutEmbeddingAsync(lastCheckedArticleId, options.BatchSize);
+        var articles = await articleRepository.GetArtíclesWithoutEmbeddingAsync(lastCheckedArticleId, articleEmbeddingOptions.BatchSize);
 
         if (articles.Count == 0)
         {
@@ -41,9 +41,9 @@ public class ArticleEmbeddingService(
             var textToEmbedding = $"Title: {article.Title.Trim()}\n\n{article.Content.Trim()}";
             var tokenCount = embeddingService.GetTokenCount(textToEmbedding);
 
-            if (tokenCount > EmbeddingService.MaxInputTokens)
+            if (tokenCount > EmbeddingConstants.MaxInputTokens)
             {
-                logger.LogWarning("Skipping article {ArticleId} embedding: {TokenCount} tokens exceed {Limit}; the text was not truncated.", article.Id, tokenCount, EmbeddingService.MaxInputTokens);
+                logger.LogWarning("Skipping article {ArticleId} embedding: {TokenCount} tokens exceed {Limit}; the text was not truncated.", article.Id, tokenCount, EmbeddingConstants.MaxInputTokens);
                 continue;
             }
 

@@ -7,15 +7,15 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace PublicSafetyHub.Application.Services;
 
-public class AuthClientInitializer(IServiceScopeFactory scopeFactory, IAuthOptions options) : IHostedService
+public class AuthClientInitializer(IServiceScopeFactory scopeFactory, IAuthOptions authOptions) : IHostedService
 {
     public async Task StartAsync(CancellationToken _)
     {
-        AuthConfigurationHelper.Validate(options);
+        AuthConfigurationHelper.Validate(authOptions);
         using var scope = scopeFactory.CreateScope();
         var openIddictApplicationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        foreach (var client in options.Clients)
+        foreach (var client in authOptions.Clients)
         {
             var descriptor = new OpenIddictApplicationDescriptor
             {

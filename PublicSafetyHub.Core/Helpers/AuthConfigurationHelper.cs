@@ -4,23 +4,23 @@ namespace PublicSafetyHub.Core.Helpers;
 
 public static class AuthConfigurationHelper
 {
-    public static void Validate(IAuthOptions options)
+    public static void Validate(IAuthOptions authOptions)
     {
-        if (!Uri.TryCreate(options.Issuer, UriKind.Absolute, out var issuer) ||
+        if (!Uri.TryCreate(authOptions.Issuer, UriKind.Absolute, out var issuer) ||
             issuer.Scheme != Uri.UriSchemeHttps || !string.IsNullOrWhiteSpace(issuer.UserInfo) ||
             issuer.AbsolutePath != "/" || !string.IsNullOrWhiteSpace(issuer.Query) || !string.IsNullOrWhiteSpace(issuer.Fragment))
         {
             throw new InvalidOperationException("AuthOptions:Issuer must be an HTTPS origin without a path, query, fragment or user information.");
         }
 
-        if (options.Clients is null || options.Clients.Length == 0 ||
-            options.Clients.Any(client => client is null || string.IsNullOrWhiteSpace(client.ClientId)) ||
-            options.Clients.Select(client => client.ClientId).Distinct(StringComparer.Ordinal).Count() != options.Clients.Length)
+        if (authOptions.Clients is null || authOptions.Clients.Length == 0 ||
+            authOptions.Clients.Any(client => client is null || string.IsNullOrWhiteSpace(client.ClientId)) ||
+            authOptions.Clients.Select(client => client.ClientId).Distinct(StringComparer.Ordinal).Count() != authOptions.Clients.Length)
         {
             throw new InvalidOperationException("AuthOptions:Clients must contain unique, nonempty client identifiers.");
         }
 
-        foreach (var client in options.Clients)
+        foreach (var client in authOptions.Clients)
         {
             if (client.RedirectUris is null || (client.Enabled && client.RedirectUris.Length == 0) ||
                 client.RedirectUris.Distinct(StringComparer.Ordinal).Count() != client.RedirectUris.Length)

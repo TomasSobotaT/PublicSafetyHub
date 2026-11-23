@@ -9,26 +9,26 @@ public static class HttpClientExtension
     {
         public IServiceCollection AddHttpClientRegistration()
         {
-            services.AddHttpClient<IFirefightersArticlesClient, FirefightersArticlesClient>(client =>
+            services.AddHttpClient<IFirefightersArticlesClient, FirefightersArticlesClient>(httpClient =>
             {
-                client.Timeout = TimeSpan.FromSeconds(60);
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("PublicSafetyHub/1.0");
+                httpClient.Timeout = TimeSpan.FromSeconds(60);
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PublicSafetyHub/1.0");
             });
 
-            services.AddHttpClient<IArmyArticlesClient, ArmyArticlesClient>((provider, client) =>
+            services.AddHttpClient<IArmyArticlesClient, ArmyArticlesClient>((provider, httpClient) =>
             {
-                var options = provider.GetRequiredService<IArmyArticleImportOptions>();
-                client.BaseAddress = new Uri(options.BaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(60);
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("PublicSafetyHub/1.0");
+                var armyArticleImportOptions = provider.GetRequiredService<IArmyArticleImportOptions>();
+                httpClient.BaseAddress = new Uri(armyArticleImportOptions.BaseUrl);
+                httpClient.Timeout = TimeSpan.FromSeconds(60);
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PublicSafetyHub/1.0");
             });
 
-            services.AddHttpClient<IPoliceArticlesClient, PoliceArticlesClient>((provider, client) =>
+            services.AddHttpClient<IPoliceArticlesClient, PoliceArticlesClient>((provider, httpClient) =>
             {
-                var options = provider.GetRequiredService<IPoliceArticleImportOptions>();
-                client.BaseAddress = new Uri(options.BaseUrl);
-                client.Timeout = TimeSpan.FromSeconds(60);
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("PublicSafetyHub/1.0");
+                var policeArticleImportOptions = provider.GetRequiredService<IPoliceArticleImportOptions>();
+                httpClient.BaseAddress = new Uri(policeArticleImportOptions.BaseUrl);
+                httpClient.Timeout = TimeSpan.FromSeconds(60);
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PublicSafetyHub/1.0");
             });
 
             return services;

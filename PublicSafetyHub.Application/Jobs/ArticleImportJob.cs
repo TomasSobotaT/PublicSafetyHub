@@ -9,7 +9,7 @@ namespace PublicSafetyHub.Application.Jobs;
 
 public class ArticleImportJob(
     IServiceScopeFactory scopeFactory,
-    IArticleImportOptions options,
+    IArticleImportOptions articleImportOptions,
     IArmyArticleImportOptions armyOptions,
     IPoliceArticleImportOptions policeOptions,
     IFirefightersArticleImportOptions firefightersOptions,
@@ -22,14 +22,14 @@ public class ArticleImportJob(
             return;
         }
 
-        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(options.TimeZoneId);
+        var timeZone = TimeZoneInfo.FindSystemTimeZoneById(articleImportOptions.TimeZoneId);
 
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                var nextRun = GetNextRunUtc(DateTime.UtcNow, options, timeZone);
-                logger.LogInformation("Next article import at {NextRun} ({TimeZone}).", TimeZoneInfo.ConvertTimeFromUtc(nextRun, timeZone), options.TimeZoneId);
+                var nextRun = GetNextRunUtc(DateTime.UtcNow, articleImportOptions, timeZone);
+                logger.LogInformation("Next article import at {NextRun} ({TimeZone}).", TimeZoneInfo.ConvertTimeFromUtc(nextRun, timeZone), articleImportOptions.TimeZoneId);
 
                 while (DateTime.UtcNow < nextRun)
                 {

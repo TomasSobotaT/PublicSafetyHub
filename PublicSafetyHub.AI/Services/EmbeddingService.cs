@@ -1,15 +1,12 @@
 using Microsoft.Extensions.AI;
 using Microsoft.ML.Tokenizers;
 using PublicSafetyHub.AI.Services.Interfaces;
+using PublicSafetyHub.Core.Constants;
 
 namespace PublicSafetyHub.AI.Services;
 
 public class EmbeddingService(Lazy<IEmbeddingGenerator<string, Embedding<float>>> embeddingGenerator, Lazy<Tokenizer> tokenizer) : IEmbeddingService
 {
-    public const int Dimensions = 1536;
-    public const int MaxInputTokens = 8191;
-    public const int MaxBatchSize = 32;
-
     public int GetTokenCount(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -18,8 +15,18 @@ public class EmbeddingService(Lazy<IEmbeddingGenerator<string, Embedding<float>>
 
     public async Task<float[]> GenerateAsync(string text)
     {
-        var vectors = await GenerateAsync(new Dictionary<int, string> { [0] = text });
-        return vectors[0];
+        ArgumentNullException.ThrowIfNull(text);
+
+        var embedding = await embeddingGenerator.Value.GenerateVectorAsync(text,
+            new EmbeddingGenerationOptions { Dimensions = EmbeddingConstants.Dimensions });
+        var vector = embedding.ToArray();
+
+        if (IsInvalidVector(vector))
+        {
+            throw new InvalidOperationException("The embedding provider returned an invalid vector.");
+        }
+
+        return vector;
     }
 
     public async Task<IReadOnlyDictionary<int, float[]>> GenerateAsync(IReadOnlyDictionary<int, string> textToEmbeddingDictionary)
@@ -31,12 +38,12 @@ public class EmbeddingService(Lazy<IEmbeddingGenerator<string, Embedding<float>>
             return new Dictionary<int, float[]>();
         }
 
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(textToEmbeddingDictionary.Count, MaxBatchSize);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(textToEmbeddingDictionary.Count, EmbeddingConstants.MaxBatchSize);
 
         var inputKeyValuePairs = textToEmbeddingDictionary.ToArray();
         var uniqueTexts = inputKeyValuePairs.Select(input => input.Value).Distinct(StringComparer.Ordinal).ToArray();
 
-        var embeddings = await embeddingGenerator.Value.GenerateAndZipAsync(uniqueTexts, new EmbeddingGenerationOptions { Dimensions = Dimensions });
+        var embeddings = await embeddingGenerator.Value.GenerateAndZipAsync(uniqueTexts, new EmbeddingGenerationOptions { Dimensions = EmbeddingConstants.Dimensions });
         var vectorsByTextDictionary = new Dictionary<string, float[]>(StringComparer.Ordinal);
 
         foreach (var (text, embedding) in embeddings)
@@ -56,6 +63,6 @@ public class EmbeddingService(Lazy<IEmbeddingGenerator<string, Embedding<float>>
 
     private static bool IsInvalidVector(float[] vector)
     {
-        return vector.Length != Dimensions || vector.Any(value => !float.IsFinite(value));
+        return vector.Length != EmbeddingConstants.Dimensions || vector.Any(value => !float.IsFinite(value));
     }
 }
